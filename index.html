@@ -11,11 +11,34 @@
     <meta property="og:description" content="Product Verification Scanner" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="" />
+<style>
 
+    .blockchain-button {
+      background: linear-gradient(145deg, #1f1f1f, #2a2a2a);
+      border: 1px solid #3c3c3c;
+      color: #00ffcc;
+      padding: 12px 24px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px #00ffcc55, 0 0 20px #00ffcc33 inset;
+      text-decoration: none;
+    }
+
+    .blockchain-button:hover {
+      background-color: #111;
+      box-shadow: 0 0 15px #00ffccaa, 0 0 25px #00ffcc66 inset;
+    }
+  </style>
   </head>
 
   <body>
+    
     <div id="root"></div>
+    <a href="consumer.html" class="blockchain-button">Consumer Page</a>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
