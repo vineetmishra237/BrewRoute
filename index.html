@@ -1,0 +1,2598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Tea's Tale: A Cinematic Scroll Journey</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Variables --- */
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-medium: #1a1a1a;
+            --bg-light: #2a2a2a;
+            --text-color: #e5e5e5;
+            --text-light: #f5f5f5;
+            --accent-color: #facc15;
+            --accent-glow: rgba(250, 204, 21, 0.6);
+            --green-dark: #14532d;
+            --green-medium: #15803d;
+            --green-light: #22c55e;
+            --sky-light: #a5d8ff;
+            --sky-dark: #4682b4;
+            --tea-brown: #d97706;
+            --steam-color: rgba(255, 255, 255, 0.8);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Base Styles --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth; /* Might be overridden by GSAP's ScrollTo */
+            background-color: var(--bg-dark);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            overflow-x: hidden;
+            line-height: 1.6;
+            perspective: 1000px;
+            background-color: var(--bg-dark);
+        }
+
+        /* --- Added styles for JS elements --- */
+        #bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1; /* Behind content */
+        }
+        #bg-particles svg { /* Ensure SVG fills container */
+             width: 100%;
+             height: 100%;
+             position: absolute;
+             top: 0;
+             left: 0;
+         }
+
+        .custom-cursor { /* Style for JS created cursor */
+             /* JS sets most styles, but you can add defaults */
+             border: 1px solid var(--accent-color);
+         }
+
+        .fullscreen-loader { /* Style for JS created loader */
+             color: var(--text-light);
+             text-align: center;
+         }
+         .fullscreen-loader h2 {
+             margin-top: 1rem;
+             font-weight: 300;
+             font-size: 1.2rem;
+         }
+         .fullscreen-loader .tea-leaf { /* Style for loader SVG parts */
+            stroke-dasharray: 1000; /* Needed for DrawSVG */
+            stroke-dashoffset: 1000;
+         }
+
+         .section-nav { /* Style for JS created nav dots */
+            /* JS sets position */
+         }
+         .nav-dot {
+            transition: background-color 0.3s ease, transform 0.3s ease; /* Add transitions for smoother hover */
+         }
+         .nav-label {
+            background: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+         }
+
+         .scroll-progress { /* Style for JS created progress bar */
+            /* JS sets most styles */
+         }
+
+         .scroll-to-top { /* Style for JS created button */
+            transition: opacity 0.3s ease, transform 0.3s ease;
+         }
+
+         .audio-control { /* Style for JS created audio control */
+             transition: background-color 0.3s ease, transform 0.3s ease;
+         }
+         .audio-tooltip {
+             position: absolute;
+             left: 110%;
+             top: 50%;
+             transform: translateY(-50%);
+             background: rgba(0,0,0,0.7);
+             color: white;
+             padding: 5px 10px;
+             border-radius: 5px;
+             font-size: 12px;
+             white-space: nowrap;
+             opacity: 0;
+             pointer-events: none;
+             transition: opacity 0.3s ease;
+         }
+         .audio-control:hover .audio-tooltip {
+             opacity: 1;
+         }
+         /* --- End JS Element Styles --- */
+
+
+        /* --- Header --- */
+        #intro {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #intro::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,50 Q50,30 70,50 Q50,70 30,50 Z" fill="none" stroke="%23facc15" stroke-width="0.5" opacity="0.1"/></svg>');
+            background-size: 100px 100px;
+            opacity: 0.2;
+            z-index: 0;
+        }
+
+        /* Added Logo Element */
+        .logo {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            z-index: 10;
+            opacity: 0; /* Initial state for JS */
+        }
+
+        #intro h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 15px var(--accent-glow);
+            opacity: 0; /* Initial state for JS */
+            transform: translateY(20px) rotateX(10deg); /* Match JS initial state */
+            position: relative;
+            z-index: 1;
+        }
+
+        #intro p {
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            color: var(--text-light);
+            max-width: 600px;
+            margin-bottom: 3rem;
+            opacity: 0; /* Initial state for JS */
+            transform: translateY(20px); /* Match JS initial state */
+            position: relative;
+            z-index: 1;
+        }
+
+        .scroll-indicator {
+            font-size: 2rem;
+            color: var(--accent-color);
+            /* animation: bounce 2.5s infinite ease-in-out; JS handles animation */
+            opacity: 0; /* Initial state for JS */
+            transform: translateY(10px); /* Match JS initial */
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Floating tea leaves in intro */
+        .floating-leaf {
+            position: absolute;
+            opacity: 0; /* Initial state for JS */
+            z-index: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            /* Set initial positions via JS */
+        }
+
+
+        /* --- Section Styling --- */
+        .tea-section { /* Added class 'section' for JS */
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Center content vertically */
+            padding: 8rem 2rem 4rem 2rem;
+            position: relative;
+            overflow: hidden; /* Keep hidden unless specific section needs overflow (like transport) */
+             /* clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); /* Initial state for JS reveal */
+        }
+
+        /* Specific Backgrounds */
+        #harvest {
+            background: linear-gradient(180deg, var(--sky-dark) 0%, var(--green-dark) 80%);
+        }
+        #processing {
+            background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+        }
+        #packaging {
+            background: linear-gradient(180deg, #4b5563 0%, #374151 100%);
+        }
+        #transport {
+            /* Background now handled by SVG elements for JS parallax */
+             background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); /* Keep a base color */
+            min-height: 200vh; /* Keep height for pinning */
+            align-items: flex-start; /* Align title to top */
+            overflow: visible; /* Allow truck/parallax to go off screen */
+        }
+        #delivery {
+            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-medium) 100%);
+        }
+
+        .section-content {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            /* Opacity/Transform set by JS reveal */
+        }
+
+        .section-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: var(--text-light);
+            margin-bottom: 3rem;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 0.5rem;
+            opacity: 0; /* Initial state for JS */
+            transform: translateY(30px); /* Initial state for JS */
+        }
+
+        /* Stage Indicator */
+        .section-content h2 span {
+            display: block;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.5em;
+            font-weight: 600;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            /* width: 0; /* Initial state for JS width animation */
+            /* overflow: hidden; /* Hide text until width expands */
+        }
+
+        /* Underline effect - JS handles width */
+        .section-content h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; /* Initial state for JS */
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+
+        .svg-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(30, 30, 32, 0.7);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transform-style: preserve-3d;
+            /* Opacity/Scale set by JS */
+        }
+
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            overflow: visible; /* Allow elements to go outside bounds if needed */
+        }
+
+        /* --- Transportation Specific --- */
+        .transport-section { /* Alias for #transport */
+            position: relative;
+        }
+
+        /* Remove CSS Parallax Background Rules - Replaced by SVG Elements */
+        /* .parallax-bg { ... } */
+        /* .layer-1 { ... } */
+        /* .layer-2 { ... } */
+        /* .layer-3 { ... } */
+
+        #truck-svg { /* Now wrapped in #truck-group */
+            /* position: fixed; JS handles pinning via #transport */
+            /* bottom: 15%; */
+            /* left: -300px; */
+            width: clamp(200px, 30vw, 350px);
+            height: auto;
+            /* z-index: 10; Set on group */
+            filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.4));
+            will-change: transform; /* Hint for performance */
+            /* opacity: 0; Set on group */
+        }
+
+        #truck-group { /* New wrapper for truck */
+            position: fixed; /* For pinning */
+            bottom: 15%;
+            left: 0; /* JS controls x position */
+            width: auto; /* Let SVG define width */
+            height: auto;
+            z-index: 10;
+            opacity: 0; /* Initial state for JS */
+            transform: translateX(-100%); /* Start off screen */
+            will-change: transform;
+        }
+
+        .cloud {
+            position: absolute; /* Keep absolute */
+            width: clamp(150px, 25vw, 300px);
+            z-index: 5; /* Between layers and truck */
+            opacity: 0; /* Initial state */
+            will-change: transform, opacity;
+            /* Initial positions set via JS */
+        }
+
+        .transport-title { /* Stays absolute within the flow */
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100; /* Above parallax */
+            width: 90%;
+        }
+
+        .transport-title h2 {
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+             /* Ensure initial state matches JS */
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .transport-title h2 span {
+            color: white;
+            /* width: 0; /* Initial state for JS */
+        }
+        .transport-title h2::after {
+            background-color: white;
+            width: 0; /* Initial state for JS */
+        }
+
+        /* Added for JS elements */
+         #lighting-overlay {
+             position: absolute;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             background: radial-gradient(circle at 50% 30%, rgba(255, 255, 200, 0.4), transparent 70%);
+             opacity: 0;
+             pointer-events: none;
+             z-index: 6; /* Above clouds, below truck */
+         }
+
+         .road-marking {
+             position: absolute;
+             bottom: 5%; /* Adjust as needed */
+             height: 5px;
+             width: 50px;
+             background: rgba(255, 255, 255, 0.4);
+             z-index: 4; /* Above road layer */
+         }
+
+        /* --- Delivery Specific --- */
+        .final-caption {
+            margin-top: 3rem;
+            font-size: 1.3rem;
+            color: var(--text-light);
+            opacity: 0; /* Initial state for JS */
+            transform: translateY(20px); /* Initial state for JS */
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* Floating bubbles in delivery scene */
+        .tea-bubble {
+            position: absolute;
+            background: rgba(101, 163, 13, 0.3); /* Match JS color */
+            border-radius: 50%;
+            filter: blur(1px); /* Slightly less blur? */
+            z-index: 1;
+            opacity: 0; /* Initial state for JS */
+            /* Size/Position set via JS */
+        }
+
+        /* Container for background leaves */
+        #bg-leaves-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-leaf { /* Style for JS added leaves */
+            /* JS sets most styles */
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background-color: var(--bg-medium);
+            color: #888;
+            font-size: 1rem;
+            position: relative;
+            z-index: 101;
+        }
+
+        footer i {
+            color: var(--accent-color);
+            margin: 0 5px;
+        }
+        .footer-link { /* Make footer links interactive for cursor */
+            color: #aaa;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+        .footer-link:hover {
+            color: var(--accent-color);
+        }
+
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            .tea-section {
+                padding: 6rem 1rem 3rem 1rem;
+            }
+
+            .svg-wrapper {
+                padding: 1rem;
+            }
+
+            #truck-group { /* Adjust group position */
+                bottom: 18%;
+            }
+            #truck-svg { /* Adjust svg size within group */
+                width: clamp(150px, 40vw, 250px);
+            }
+            .transport-title {
+                 top: 10%;
+            }
+            .section-nav { /* Hide nav dots on mobile? */
+                 display: none;
+            }
+             .custom-cursor { /* Hide custom cursor on touch devices */
+                 display: none;
+             }
+        }
+
+        /* --- Custom Animations --- */
+        /* Keep minimal CSS anims if JS doesn't replace all */
+        @keyframes sunGlow {
+            0%, 100% { filter: drop-shadow(0 0 10px var(--accent-glow)); }
+            50% { filter: drop-shadow(0 0 20px var(--accent-glow)); }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Container for JS generated particles -->
+    <div id="bg-particles">
+        <svg></svg> <!-- Target for particle system -->
+    </div>
+
+    <header id="intro" class="section" data-section-name="Intro">
+        <div class="logo">BrewRoute</div> <!-- Added logo -->
+        <h1>The Tea's Tale</h1>
+        <p class="animate-text">Scroll to experience the journey from leaf to cup</p> <!-- Added class for text reveal -->
+        <div class="scroll-indicator"><span>↓</span></div>
+
+        <!-- Floating tea leaves -->
+        <svg class="floating-leaf leaf-1" width="60" height="60" viewBox="0 0 100 100">
+            <path d="M50,20 C60,10 80,15 80,30 C90,50 70,70 50,80 C30,70 10,50 20,30 C20,15 40,10 50,20 Z" fill="#22c55e" opacity="0.8"/>
+        </svg>
+        <svg class="floating-leaf leaf-2" width="40" height="40" viewBox="0 0 100 100">
+            <path d="M30,50 Q50,30 70,50 Q50,70 30,50 Z" fill="#15803d" opacity="0.8"/>
+        </svg>
+        <svg class="floating-leaf leaf-3" width="50" height="50" viewBox="0 0 100 100">
+            <path d="M50,10 C70,0 90,20 80,40 C100,60 70,90 50,80 C30,90 0,60 20,40 C10,20 30,0 50,10 Z" fill="#14532d" opacity="0.8"/>
+        </svg>
+    </header>
+
+    <main id="journey-container">
+        <!-- Scene 1: Harvesting -->
+        <section id="harvest" class="tea-section section" data-section-name="Harvest">
+            <div class="section-content">
+                <h2 class="animate-text"><span>Stage 1</span> Sun-Kissed Slopes: The Harvest</h2>
+                <div class="svg-wrapper">
+                    <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="skyGradient" cx="50%" cy="10%" r="90%">
+                                <stop offset="0%" stop-color="var(--sky-light)" />
+                                <stop offset="100%" stop-color="var(--sky-dark)" />
+                            </radialGradient>
+                            <filter id="sunGlowFilter" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+                                <feMerge>
+                                    <feMergeNode in="blur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <rect width="800" height="500" fill="url(#skyGradient)" />
+
+                        <g id="sun-group" style="transform-origin: 100px 100px;">
+                            <circle cx="100" cy="100" r="50" fill="var(--accent-color)" filter="url(#sunGlowFilter)" />
+                            <circle cx="100" cy="100" r="45" fill="var(--accent-color)" />
+                            <!-- Added Sun Rays -->
+                            <g id="sun-rays" transform="translate(100 100)">
+                                <line x1="0" y1="-70" x2="0" y2="-55" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                                <line x1="0" y1="70" x2="0" y2="55" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                                <line x1="-70" y1="0" x2="-55" y2="0" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                                <line x1="70" y1="0" x2="55" y2="0" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                                <line x1="-50" y1="-50" x2="-40" y2="-40" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                                <line x1="50" y1="50" x2="40" y2="40" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                                <line x1="-50" y1="50" x2="-40" y2="40" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                                <line x1="50" y1="-50" x2="40" y2="-40" stroke="var(--accent-color)" stroke-width="3" opacity="0.8"/>
+                            </g>
+                        </g>
+
+                        <!-- Wrapped hills/bushes in plantation group -->
+                        <g id="tea-plantation">
+                            <path d="M0 400 Q 150 250, 300 350 T 600 300 T 800 400 V 500 H 0 Z" fill="var(--green-dark)" />
+                            <path d="M0 450 Q 200 350, 400 400 T 700 380 T 800 450 V 500 H 0 Z" fill="var(--green-medium)" />
+                            <path d="M0 500 H 800 V 400 Q 400 380, 0 500 Z" fill="var(--green-light)"/>
+
+                            <g id="tea-bushes">
+                                <g transform="translate(200, 380)">
+                                    <circle r="40" fill="var(--green-medium)"/>
+                                    <path d="M-30,-20 Q0,-40 30,-20 Q40,0 20,20 Q0,40 -20,20 Q-40,0 -30,-20 Z" fill="var(--green-dark)" opacity="0.7"/>
+                                </g>
+                                <g transform="translate(250, 390)">
+                                    <circle r="30" fill="var(--green-light)"/>
+                                    <path d="M-20,-15 Q0,-30 20,-15 Q25,0 15,15 Q0,30 -15,15 Q-25,0 -20,-15 Z" fill="var(--green-medium)" opacity="0.7"/>
+                                </g>
+                                <g id="main-bush" transform="translate(540, 370)">
+                                    <circle r="50" fill="var(--green-dark)"/>
+                                    <path d="M-40,-25 Q0,-50 40,-25 Q50,0 30,25 Q0,50 -30,25 Q-50,0 -40,-25 Z" fill="var(--green-medium)" opacity="0.8"/>
+                                    <path class="bush-leaf" d="M-30,-10 Q-20,-20 -10,-10 Q-20,0 -30,-10 Z" fill="var(--green-light)"/>
+                                    <path class="bush-leaf" d="M10,-15 Q20,-25 30,-15 Q20,-5 10,-15 Z" fill="var(--green-light)"/>
+                                    <path class="bush-leaf" d="M-15,20 Q-5,10 5,20 Q-5,30 -15,20 Z" fill="var(--green-light)"/>
+                                </g>
+                            </g>
+                        </g>
+
+                        <g id="picker-group">
+                            <g id="picker-1" transform="translate(480, 330)" style="transform-origin: 12.5px 45px;">
+                                <rect width="25" height="45" rx="5" fill="#4a3c2a"/>
+                                <circle cx="12.5" cy="-15" r="15" fill="#e6c9a8"/>
+                                <path class="picker-arm" d="M 25 20 Q 50 30 60 50" stroke="#4a3c2a" stroke-width="8" fill="none" stroke-linecap="round" style="transform-origin: 25px 20px;"/>
+                                <path class="basket" d="M40 60 Q 70 80 100 60 L 90 90 Q 70 100 50 90 Z" fill="#a16207"/>
+                            </g>
+                            <g id="picker-2" transform="translate(300, 360) scale(0.7)" style="transform-origin: 12.5px 45px;">
+                                <rect width="25" height="45" rx="5" fill="#4a3c2a" opacity="0.8"/>
+                                <circle cx="12.5" cy="-15" r="15" fill="#e6c9a8" opacity="0.8"/>
+                                <path d="M 25 20 Q 40 25 45 40" stroke="#4a3c2a" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.8"/>
+                                <path d="M35 50 Q 50 60 65 50 L 60 70 Q 50 75 40 70 Z" fill="#a16207" opacity="0.8"/>
+                            </g>
+                            <!-- Container for JS falling leaves -->
+                             <g id="falling-leaves-container"></g>
+                            <!-- Removed static falling leaves -->
+                        </g>
+
+                        <g id="birds" data-speed="-0.1"> <!-- Added parallax speed -->
+                            <path class="bird" d="M100,150 Q110,140 120,150 Q110,160 100,150 Z" fill="#333" opacity="0.7"/>
+                            <path class="bird" d="M150,130 Q160,120 170,130 Q160,140 150,130 Z" fill="#333" opacity="0.7"/>
+                            <path class="bird" d="M700,180 Q710,170 720,180 Q710,190 700,180 Z" fill="#333" opacity="0.7"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scene 2: Processing -->
+        <section id="processing" class="tea-section section" data-section-name="Processing">
+            <div class="section-content">
+                 <h2 class="animate-text"><span>Stage 2</span> The Factory Floor: Processing</h2>
+                 <div class="svg-wrapper">
+                     <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <filter id="machineGlow" x="-30%" y="-30%" width="160%" height="160%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+                                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                             <!-- Simplified filter for bag shadow -->
+                             <filter id="bagShadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+                             </filter>
+                        </defs>
+
+                        <!-- Added Factory Background -->
+                        <g id="factory-bg">
+                            <rect width="800" height="500" fill="var(--bg-dark)"/>
+                            <rect x="0" y="400" width="800" height="100" fill="#1f2937"/> <!-- Floor -->
+                            <rect x="50" y="50" width="100" height="150" fill="#3b82f6" opacity="0.1"/>
+                            <rect x="200" y="50" width="100" height="150" fill="#3b82f6" opacity="0.1"/>
+                            <rect x="650" y="50" width="100" height="150" fill="#3b82f6" opacity="0.1"/>
+                            <!-- Pipes/Structure -->
+                            <rect x="750" y="0" width="10" height="400" fill="#374151"/>
+                            <rect x="20" y="0" width="10" height="250" fill="#374151"/>
+                            <rect x="0" y="240" width="150" height="10" fill="#374151"/>
+                        </g>
+
+                        <g id="conveyor-group">
+                             <!-- ID added to main belt rect for animation -->
+                             <rect id="conveyor-belt" x="0" y="300" width="800" height="60" fill="#4b5563" style="background-image: linear-gradient(45deg, #374151 25%, transparent 25%, transparent 75%, #374151 75%), linear-gradient(45deg, #374151 25%, transparent 25%, transparent 75%, #374151 75%); background-size: 20px 20px; background-position: 0 0, 10px 10px;"/>
+                             <!-- Rollers kept simple -->
+                             <circle cx="50" cy="330" r="10" fill="#374151"/> <circle cx="150" cy="330" r="10" fill="#374151"/> <circle cx="250" cy="330" r="10" fill="#374151"/> <circle cx="350" cy="330" r="10" fill="#374151"/> <circle cx="450" cy="330" r="10" fill="#374151"/> <circle cx="550" cy="330" r="10" fill="#374151"/> <circle cx="650" cy="330" r="10" fill="#374151"/> <circle cx="750" cy="330" r="10" fill="#374151"/>
+                        </g>
+
+                        <g id="machine-group" filter="url(#machineGlow)">
+                            <rect x="300" y="100" width="200" height="180" rx="10" fill="#6b7280"/>
+                            <rect x="320" y="120" width="160" height="30" fill="#4b5563"/>
+                            <rect x="310" y="150" width="180" height="5" fill="#9ca3af"/> <rect x="310" y="160" width="180" height="5" fill="#9ca3af"/> <rect x="310" y="170" width="180" height="5" fill="#9ca3af"/>
+                            <!-- Gears with animation -->
+                            <circle cx="350" cy="220" r="25" fill="#4b5563"> <animateTransform attributeName="transform" type="rotate" from="0 350 220" to="360 350 220" dur="5s" repeatCount="indefinite"/> </circle>
+                            <path d="M350,195 L350,200 M350,240 L350,245 M325,220 L320,220 M380,220 L385,220" stroke="#9ca3af" stroke-width="2"/>
+                            <circle cx="450" cy="220" r="25" fill="#4b5563"> <animateTransform attributeName="transform" type="rotate" from="360 450 220" to="0 450 220" dur="5s" repeatCount="indefinite"/> </circle>
+                            <path d="M450,195 L450,200 M450,240 L450,245 M425,220 L420,220 M480,220 L485,220" stroke="#9ca3af" stroke-width="2"/>
+                            <!-- Chute -->
+                            <rect x="380" y="250" width="40" height="50" fill="#374151"/>
+                            <path d="M400,300 L400,320" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Steam paths for JS animation -->
+                            <path class="machine-steam" d="M350,100 Q360,80 370,100" stroke="white" stroke-width="2" fill="none" opacity="0"/>
+                            <path class="machine-steam" d="M400,90 Q410,70 420,90" stroke="white" stroke-width="2" fill="none" opacity="0"/>
+                            <path class="machine-steam" d="M450,100 Q460,80 470,100" stroke="white" stroke-width="2" fill="none" opacity="0"/>
+                        </g>
+
+                        <!-- Empty container for JS leaves -->
+                        <g id="loose-leaves"></g>
+
+                         <g id="tea-bag-forming" opacity="0" transform="translate(380, 300)">
+                             <path d="M 0 0 L 40 0 L 40 50 L 20 60 L 0 50 Z" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/>
+                             <line x1="20" y1="0" x2="20" y2="-10" stroke="#9ca3af" stroke-width="1"/>
+                             <rect x="15" y="-15" width="10" height="5" fill="var(--tea-brown)"/> <!-- Tag -->
+                             <path d="M10,10 L30,10" stroke="#9ca3af" stroke-width="1" stroke-dasharray="2,2"/>
+                             <path d="M5,20 L35,20" stroke="#9ca3af" stroke-width="1" stroke-dasharray="2,2"/>
+                         </g>
+
+                         <g id="worker" transform="translate(600, 280)" style="transform-origin: 12.5px 45px;">
+                             <rect width="25" height="45" rx="5" fill="#4a3c2a"/>
+                             <circle cx="12.5" cy="-15" r="15" fill="#e6c9a8"/>
+                             <path d="M 25 20 Q 40 25 45 40" stroke="#4a3c2a" stroke-width="6" fill="none" stroke-linecap="round"/>
+                             <path d="M0 20 Q-15 25 -20 40" stroke="#4a3c2a" stroke-width="6" fill="none" stroke-linecap="round"/>
+                         </g>
+                     </svg>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Scene 3: Packaging -->
+        <section id="packaging" class="tea-section section" data-section-name="Packaging">
+             <div class="section-content">
+                 <h2 class="animate-text"><span>Stage 3</span> Boxing Clever: Packaging</h2>
+                 <div class="svg-wrapper">
+                      <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                         <defs>
+                             <linearGradient id="packageGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                 <stop offset="0%" stop-color="var(--bg-medium)" />
+                                 <stop offset="100%" stop-color="var(--bg-dark)" />
+                             </linearGradient>
+                             <filter id="packageGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                 <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+                                 <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                             </filter>
+                             <!-- Defined bag shadow filter above -->
+                         </defs>
+
+                         <!-- Added Packaging Background -->
+                         <g id="packaging-bg">
+                             <rect width="800" height="500" fill="url(#packageGradient)"/>
+                             <!-- Packaging Line -->
+                             <rect x="0" y="350" width="800" height="10" fill="#4b5563"/>
+                             <rect x="0" y="360" width="800" height="5" fill="#6b7280"/>
+                             <!-- Factory details -->
+                             <rect x="100" y="100" width="600" height="5" fill="#6b7280" opacity="0.3"/>
+                             <rect x="100" y="120" width="600" height="5" fill="#6b7280" opacity="0.3"/>
+                             <rect x="100" y="140" width="600" height="5" fill="#6b7280" opacity="0.3"/>
+                              <rect x="50" y="0" width="10" height="350" fill="#374151" opacity="0.5"/>
+                             <rect x="740" y="0" width="10" height="350" fill="#374151" opacity="0.5"/>
+                         </g>
+
+                         <!-- Empty container for JS packaged bags -->
+                         <g id="packaged-bags"></g>
+
+                         <!-- Tea Box -->
+                         <g id="tea-box-group" transform="translate(550, 250)" opacity="0" filter="url(#packageGlow)">
+                             <g id="box-lid-group" style="transform-origin: center 25px;"> <!-- Added origin for rotation -->
+                                 <polygon points="0,0 120,0 100,25 20,25" fill="#eab308"/> <!-- Lid Top -->
+                                 <polygon points="20,25 100,25 100,50 20,50" fill="#d97706"/> <!-- Lid Front -->
+                                 <rect x="20" y="25" width="80" height="25" fill="none" stroke="#b45309" stroke-width="1"/>
+                             </g>
+                            <polygon id="box-base" points="20,50 100,50 120,130 0,130" fill="#f59e0b"/> <!-- Base -->
+                            <rect x="20" y="50" width="80" height="80" fill="none" stroke="#b45309" stroke-width="1"/>
+                            <text x="60" y="90" font-family="'Playfair Display', serif" font-size="14" fill="#78350f" text-anchor="middle" opacity="0.8">TEA CO.</text>
+                            <text x="60" y="110" font-family="Poppins" font-size="8" fill="#78350f" text-anchor="middle" opacity="0.8">PREMIUM BLEND</text>
+                         </g>
+
+                         <!-- Robotic arm - broken down -->
+                         <g id="robot-arm-base" transform="translate(300, 150)">
+                             <circle cx="10" cy="10" r="15" fill="#4b5563"/> <!-- Base pivot -->
+                             <rect x="0" y="0" width="20" height="100" fill="#6b7280" rx="2"/> <!-- Main arm segment -->
+                             <g id="robot-arm-joint" transform="translate(0 80)" style="transform-origin: 10px 10px;"> <!-- Joint part -->
+                                 <rect x="-30" y="0" width="80" height="15" fill="#9ca3af" rx="2"/> <!-- Second segment -->
+                                 <g id="robot-arm-claw" transform="translate(10 15)" style="transform-origin: center bottom;"> <!-- Claw part -->
+                                     <path d="M -10 0 Q -5 15 0 15 Q 5 15 10 0 Z" fill="#4b5563" />
+                                     <path d="M -7 5 Q 0 10 7 5" stroke="#9ca3af" stroke-width="2" fill="none"/>
+                                 </g>
+                             </g>
+                         </g>
+                      </svg>
+                 </div>
+             </div>
+        </section>
+
+        <!-- Scene 4: Transport -->
+        <section id="transport" class="tea-section transport-section section" data-section-name="Transport">
+            <!-- Transport title moved inside section content -->
+             <div class="section-content transport-title">
+                 <h2 class="animate-text"><span>Stage 4</span> Hitting the Road: Transport</h2>
+             </div>
+
+            <!-- SVG container for Parallax Background and Truck -->
+            <svg id="landscape-bg" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid slice" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+                 <!-- Farthest Mountains -->
+                 <g id="mountains-far" data-speed="-0.1">
+                     <path d="M -100 600 L -100 450 Q 100 350 300 430 T 700 400 T 1100 450 T 1500 420 T 1900 480 L 1900 600 Z" fill="#1d4ed8" opacity="0.6"/>
+                 </g>
+                 <!-- Mid Mountains -->
+                 <g id="mountains-mid" data-speed="-0.2">
+                     <path d="M -100 600 L -100 500 Q 200 400 450 480 T 900 450 T 1300 510 T 1700 470 T 1900 530 L 1900 600 Z" fill="#2563eb" opacity="0.8"/>
+                 </g>
+                 <!-- Near Hills/Ground -->
+                 <g id="mountains-near" data-speed="-0.4">
+                     <path d="M -100 600 L -100 550 Q 150 500 350 540 T 750 520 T 1150 560 T 1550 530 T 1900 570 L 1900 600 Z" fill="#14532d" />
+                 </g>
+                 <!-- Road -->
+                 <g id="road-layer" data-speed="-0.8">
+                    <path d="M -100 600 L -100 580 Q 800 560 1900 580 L 1900 600 Z" fill="#4b5563" />
+                    <!-- Road Markings (simplified for JS repeat) -->
+                    <rect class="road-marking" x="200" y="578" width="80" height="4" fill="rgba(255,255,255,0.4)" />
+                    <rect class="road-marking" x="400" y="578" width="80" height="4" fill="rgba(255,255,255,0.4)" />
+                    <rect class="road-marking" x="600" y="578" width="80" height="4" fill="rgba(255,255,255,0.4)" />
+                 </g>
+             </svg>
+
+            <!-- Clouds (still absolutely positioned HTML elements) -->
+            <svg class="cloud cloud-1" viewBox="0 0 200 80" data-speed="-0.15" data-offset="50"><path fill="#fff" opacity="0.8" d="M 10 40 C 0 40, 0 60, 20 60 H 180 C 200 60, 200 40, 190 40 C 180 10, 140 10, 130 30 C 120 0, 60 0, 70 30 C 60 15, 20 15, 10 40 Z"/></svg>
+            <svg class="cloud cloud-2" viewBox="0 0 250 100" data-speed="-0.25" data-offset="-30"><path fill="#fff" opacity="0.7" d="M 15 50 C 0 50, 0 75, 30 75 H 220 C 250 75, 250 50, 235 50 C 220 20, 180 20, 170 40 C 155 10, 90 10, 100 40 C 90 20, 30 20, 15 50 Z"/></svg>
+            <svg class="cloud cloud-3" viewBox="0 0 180 60" data-speed="-0.1" data-offset="100"><path fill="#fff" opacity="0.6" d="M 5 30 C -5 30, -5 45, 15 45 H 165 C 185 45, 185 30, 175 30 C 165 10, 130 10, 120 25 C 110 0, 50 0, 60 25 C 50 15, 15 15, 5 30 Z"/></svg>
+
+            <!-- Truck SVG Wrapped in Group -->
+             <div id="truck-group">
+                 <svg id="truck-svg" viewBox="0 0 250 130">
+                     <defs>
+                         <filter id="truckGlow"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                         <linearGradient id="truckGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                             <stop offset="0%" stop-color="#facc15" />
+                             <stop offset="100%" stop-color="#f59e0b" />
+                         </linearGradient>
+                     </defs>
+                    <!-- Wrapped body for physics -->
+                    <g id="truck-body" filter="url(#truckGlow)">
+                        <rect x="10" y="40" width="200" height="70" rx="10" fill="url(#truckGradient)"/> <!-- Trailer -->
+                        <path d="M180 40 H 240 V 90 H 210 L 180 40 Z" fill="#f59e0b"/> <!-- Cab -->
+                        <rect x="200" y="50" width="30" height="20" fill="#111" opacity="0.5"/> <!-- Window -->
+                        <rect x="30" y="50" width="160" height="10" fill="#1f2937" opacity="0.2"/>
+                        <rect x="30" y="70" width="160" height="5" fill="#1f2937" opacity="0.2"/>
+                        <text x="110" y="80" font-family="'Playfair Display', serif" font-size="16" fill="#1f2937" text-anchor="middle" opacity="0.8">TEA CO.</text>
+                        <rect x="235" y="80" width="5" height="15" fill="#4b5563" rx="1"/> <!-- Exhaust pipe -->
+                         <path d="M240,85 Q245,80 250,85" stroke="#9ca3af" stroke-width="1" fill="none" opacity="0.5"/> <!-- Exhaust puff -->
+                    </g>
+                     <!-- Wheels ID'd -->
+                     <g id="back-wheel" style="transform-origin: 60px 115px;">
+                         <circle cx="60" cy="115" r="15" fill="#1f2937"/>
+                         <circle cx="60" cy="115" r="10" fill="#374151"/>
+                         <circle cx="60" cy="115" r="5" fill="#6b7280"/>
+                     </g>
+                     <g id="front-wheel" style="transform-origin: 170px 115px;">
+                         <circle cx="170" cy="115" r="15" fill="#1f2937"/>
+                         <circle cx="170" cy="115" r="10" fill="#374151"/>
+                         <circle cx="170" cy="115" r="5" fill="#6b7280"/>
+                     </g>
+                </svg>
+             </div>
+
+             <!-- Lighting Overlay -->
+             <div id="lighting-overlay"></div>
+
+        </section>
+
+        <!-- Scene 5: Delivery & Enjoyment -->
+        <section id="delivery" class="tea-section section" data-section-name="Delivery">
+            <div class="section-content">
+                 <h2 class="animate-text"><span>Stage 5</span> Your Perfect Cup Awaits</h2>
+                 <div class="svg-wrapper">
+                     <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                         <defs>
+                             <radialGradient id="finalGradient" cx="50%" cy="50%" r="50%">
+                                 <stop offset="0%" stop-color="var(--bg-light)" />
+                                 <stop offset="100%" stop-color="var(--bg-medium)" />
+                             </radialGradient>
+                             <filter id="steamGlow">
+                                 <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+                                 <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.5 -0.5" result="glow"/>
+                                 <feComposite in="SourceGraphic" in2="glow" operator="over"/>
+                             </filter>
+                             <linearGradient id="teaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.9" />
+                                <stop offset="100%" stop-color="#d97706" stop-opacity="0.9" />
+                             </linearGradient>
+                         </defs>
+
+                         <!-- Added Delivery BG -->
+                         <g id="delivery-bg">
+                             <rect width="800" height="500" fill="url(#finalGradient)" />
+                             <!-- Subtle background pattern -->
+                             <rect width="800" height="500" fill="url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22><path d=%22M30 0 L60 30 L30 60 L0 30 Z%22 fill=%22%231a1a1a%22 opacity=%220.1%22/></svg>')" />
+                             <!-- Window Light -->
+                             <ellipse id="window-light" cx="150" cy="150" rx="150" ry="80" fill="rgba(255, 255, 220, 0.1)" filter="url(#steamGlow)" />
+                         </g>
+
+                         <!-- Table identified -->
+                         <g id="coffee-table">
+                             <rect x="100" y="400" width="600" height="20" fill="#4b5563" rx="2"/>
+                             <rect x="150" y="420" width="500" height="15" fill="#374151" rx="1"/>
+                         </g>
+
+                         <!-- Hand -->
+                         <g id="hand-group" opacity="0" transform="translate(150, 100)">
+                            <path d="M 50 250 Q 80 150, 150 180 Q 220 210, 200 280 L 180 300 Q 100 320, 50 250 Z" fill="#fcd34d"/>
+                            <path d="M200 280 Q210 290 200 300 Q190 290 200 280 Z" fill="#fbc078"/>
+                            <path d="M190 290 Q200 300 190 310 Q180 300 190 290 Z" fill="#fbc078"/>
+                            <path d="M180 300 Q190 310 180 320 Q170 310 180 300 Z" fill="#fbc078"/>
+                         </g>
+
+                         <!-- Tea Cup -->
+                         <g id="cup-group" transform="translate(350, 200)" opacity="0">
+                            <ellipse cx="75" cy="130" rx="90" ry="15" fill="#e5e7eb" opacity="0.8"/>
+                            <ellipse cx="75" cy="130" rx="80" ry="10" fill="#f3f4f6"/>
+                            <path d="M 0 100 C 0 150, 150 150, 150 100 V 20 H 0 Z" fill="#fff" stroke="#d1d5db" stroke-width="2"/>
+                            <path d="M 150 50 C 180 50, 180 100, 150 100" stroke="#d1d5db" stroke-width="2" fill="none"/>
+                            <ellipse cx="75" cy="20" rx="75" ry="15" fill="url(#teaGradient)"/>
+                            <!-- Leaves in cup -->
+                            <path class="cup-leaf" d="M40,25 Q45,20 50,25 Q45,30 40,25 Z" fill="#14532d" opacity="0"/>
+                            <path class="cup-leaf" d="M80,15 Q85,10 90,15 Q85,20 80,15 Z" fill="#15803d" opacity="0"/>
+                            <path class="cup-leaf" d="M60,30 Q65,25 70,30 Q65,35 60,30 Z" fill="#22c55e" opacity="0"/>
+                            <!-- Steam -->
+                            <g id="steam-group" filter="url(#steamGlow)">
+                                <path id="steam1" d="M 50 10 C 40 -10, 60 -10, 55 -20" stroke="var(--steam-color)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0"/>
+                                <path id="steam2" d="M 75 15 C 70 -5, 80 -15, 75 -25" stroke="var(--steam-color)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0"/>
+                                <path id="steam3" d="M 100 10 C 110 -10, 90 -10, 95 -20" stroke="var(--steam-color)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0"/>
+                            </g>
+                         </g>
+
+                         <!-- Tea Box nearby -->
+                         <g id="final-box" transform="translate(50, 300) scale(0.6)" opacity="0">
+                             <polygon points="0,0 120,0 100,25 20,25" fill="#eab308"/>
+                             <polygon points="20,25 100,25 100,50 20,50" fill="#d97706"/>
+                             <polygon points="20,50 100,50 120,130 0,130" fill="#f59e0b"/>
+                             <text x="60" y="90" font-family="Poppins" font-size="12" fill="#78350f" text-anchor="middle" opacity="0.8">TEA CO.</text>
+                         </g>
+
+                         <!-- Spoon -->
+                         <g id="spoon-group" transform="translate(500, 280)" opacity="0" style="transform-origin: 25px 50px;">
+                             <path d="M0,0 Q10,-10 20,0 L25,50 Q20,55 15,50 L0,0 Z" fill="#e5e7eb"/>
+                             <path d="M15,50 Q20,55 25,50" stroke="#d1d5db" stroke-width="1" fill="none"/>
+                         </g>
+                     </svg>
+                 </div>
+                 <p class="final-caption animate-text">Relax and savor the moment with every sip</p>
+            </div>
+
+             <!-- Elements for JS Tea Bubbles -->
+             <div class="tea-bubble bubble-1"></div>
+             <div class="tea-bubble bubble-2"></div>
+             <div class="tea-bubble bubble-3"></div>
+        </section>
+    </main>
+
+    <!-- Container for floating leaves -->
+     <div id="bg-leaves-container"></div>
+
+    <footer>
+        Made with <i class="fas fa-leaf"></i> and GSAP
+        <div class="footer-links">
+            <a href="#" class="footer-link interactive">About</a>
+            <a href="#" class="footer-link interactive">Process</a>
+            <a href="#" class="footer-link interactive">Contact</a>
+        </div>
+    </footer>
+
+    <!-- GSAP Core & Plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/MotionPathPlugin.min.js"></script>
+    <!-- IMPORTANT: Add premium plugins if you have them -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/DrawSVGPlugin.min.js"></script> <!-- Premium Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/MorphSVGPlugin.min.js"></script> <!-- Premium Plugin -->
+
+
+    <script>
+        // Check if premium plugins are loaded, provide fallback or warning if not
+        if (typeof DrawSVGPlugin === 'undefined') {
+             console.warn("GSAP DrawSVGPlugin is not loaded. Loader animation will not work. This is a premium plugin.");
+             // Optionally provide a fallback or disable features relying on it
+             gsap.registerPlugin = (function(original) { // Prevent errors on registration
+                 return function(...args) {
+                     if (args.includes(window.DrawSVGPlugin)) {
+                         console.warn("Attempted to register DrawSVGPlugin, but it's not available.");
+                         return;
+                     }
+                     return original.apply(this, args);
+                 };
+             })(gsap.registerPlugin);
+             window.DrawSVGPlugin = { version: "stub" }; // Create a dummy object
+        }
+        if (typeof MorphSVGPlugin === 'undefined') {
+             console.warn("GSAP MorphSVGPlugin is not loaded. Steam morphing animation will not work. This is a premium plugin.");
+             gsap.registerPlugin = (function(original) { // Prevent errors on registration
+                return function(...args) {
+                     if (args.includes(window.MorphSVGPlugin)) {
+                         console.warn("Attempted to register MorphSVGPlugin, but it's not available.");
+                         return;
+                     }
+                     return original.apply(this, args);
+                 };
+             })(gsap.registerPlugin);
+             window.MorphSVGPlugin = { version: "stub" }; // Create a dummy object
+        }
+
+        // Register Plugins (handle potential missing ones)
+        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, MotionPathPlugin);
+        // Conditionally register premium plugins if they exist
+        if (window.DrawSVGPlugin && window.DrawSVGPlugin.version !== "stub") {
+            gsap.registerPlugin(DrawSVGPlugin);
+        }
+        if (window.MorphSVGPlugin && window.MorphSVGPlugin.version !== "stub") {
+            gsap.registerPlugin(MorphSVGPlugin);
+        }
+
+
+        console.log("GSAP and Plugins Registered."); // Confirm registration
+
+        // ---------- GLOBAL EFFECTS & UTILITIES ----------
+        // Create particle system for enhanced visual effects
+        class ParticleSystem {
+          constructor(containerId, particleCount, options = {}) {
+            // Check if container exists
+             this.container = document.querySelector(`#${containerId} svg`); // Target the SVG inside
+             if (!this.container) {
+                 console.error(`ParticleSystem container '#${containerId} svg' not found.`);
+                 return; // Stop initialization if container is missing
+             }
+            this.particleCount = particleCount;
+            this.options = {
+              colors: options.colors || ['#65a30d', '#15803d', '#22c55e'],
+              minSize: options.minSize || 3,
+              maxSize: options.maxSize || 12,
+              minDuration: options.minDuration || 4,
+              maxDuration: options.maxDuration || 10,
+              shapes: options.shapes || ['circle', 'leaf'],
+              blendMode: options.blendMode || 'normal',
+              bounds: options.bounds || { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight } // Define bounds
+            };
+            this.particles = [];
+            this.init();
+          }
+
+          createParticle() {
+            const shapeType = this.options.shapes[Math.floor(Math.random() * this.options.shapes.length)];
+            const particle = document.createElementNS('http://www.w3.org/2000/svg',
+                              shapeType === 'circle' ? 'circle' : 'path');
+
+            const size = gsap.utils.random(this.options.minSize, this.options.maxSize);
+            const color = this.options.colors[Math.floor(Math.random() * this.options.colors.length)];
+
+            if (shapeType === 'circle') {
+              particle.setAttribute('r', size / 2);
+              particle.setAttribute('cx', 0); // Set initial position via GSAP
+              particle.setAttribute('cy', 0);
+            } else {
+              // Create leaf shape - ensure it's visible
+              particle.setAttribute('d', `M0 -${size/2} Q${size/2} 0 0 ${size/2} Q-${size/2} 0 0 -${size/2} Z`);
+              // particle.setAttribute('transform', `scale(${size/10})`); // Let GSAP handle scale/pos
+            }
+
+            particle.setAttribute('fill', color);
+            particle.setAttribute('opacity', gsap.utils.random(0.4, 0.8));
+            particle.style.mixBlendMode = this.options.blendMode;
+
+            this.container.appendChild(particle);
+            this.particles.push(particle);
+            return particle;
+          }
+
+          init() {
+             // Ensure container exists before proceeding
+            if (!this.container) return;
+            for (let i = 0; i < this.particleCount; i++) {
+              const particle = this.createParticle();
+              this.animateParticle(particle, true);
+            }
+             // Update bounds on resize
+            window.addEventListener('resize', () => {
+                 this.options.bounds = { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight };
+             });
+          }
+
+          animateParticle(particle, isInitial = false) {
+            const bounds = this.options.bounds;
+            const startX = isInitial ? gsap.utils.random(bounds.x, bounds.width) : bounds.x - 20; // Start slightly off-screen left
+            const startY = isInitial ? gsap.utils.random(bounds.y, bounds.height) : gsap.utils.random(bounds.y, bounds.height);
+            const endX = bounds.width + 20; // End slightly off-screen right
+
+            gsap.fromTo(particle, {
+              x: startX,
+              y: startY,
+              rotation: gsap.utils.random(0, 360),
+              scale: gsap.utils.random(0.5, 1.2) // Random initial scale
+            },{
+              x: endX,
+              y: '+=' + gsap.utils.random(-200, 200), // Vertical drift
+              rotation: '+=' + gsap.utils.random(180, 720),
+              scale: gsap.utils.random(0.5, 1.2), // Random end scale
+              duration: gsap.utils.random(this.options.minDuration, this.options.maxDuration),
+              ease: 'none', // Use 'none' for constant speed
+              onComplete: () => this.animateParticle(particle) // Loop animation
+            });
+          }
+        }
+
+
+        // Create parallax effect for depth (using data-speed attribute)
+        function createParallaxEffect() {
+             gsap.utils.toArray('[data-speed]').forEach(target => {
+                 const speed = parseFloat(target.getAttribute('data-speed')) || 0;
+                 gsap.to(target, {
+                     y: (ScrollTrigger.maxScroll(window) - ScrollTrigger.start) * speed, // Adjust calculation for parallax
+                     ease: 'none',
+                     scrollTrigger: {
+                         start: 0, // Start immediately
+                         end: "max",
+                         scrub: true,
+                         invalidateOnRefresh: true // Recalculate on resize
+                     }
+                 });
+             });
+        }
+
+
+        // Advanced text reveal animation
+        function createTextReveal(selector) {
+            const elements = gsap.utils.toArray(selector);
+            elements.forEach(element => {
+                 if (!element) return; // Skip if element not found
+                const chars = element.textContent.trim().split(''); // Trim whitespace
+                 if (chars.length === 0) return; // Skip empty elements
+
+                element.innerHTML = ''; // Clear original text
+                chars.forEach(char => {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char; // Use non-breaking space
+                    span.style.display = 'inline-block'; // Required for transform
+                    span.style.opacity = '0';
+                    span.style.transform = 'translateY(20px) rotateX(45deg)';
+                    span.style.transformOrigin = 'bottom center'; // Better rotation point
+                    element.appendChild(span);
+                });
+
+                ScrollTrigger.create({
+                    trigger: element,
+                    start: 'top 85%', // Trigger slightly earlier
+                    // markers: true, // Uncomment for debugging
+                    onEnter: () => {
+                        gsap.to(element.children, {
+                            opacity: 1,
+                            y: 0,
+                            rotateX: 0,
+                            stagger: 0.04, // Slightly faster stagger
+                            duration: 0.8,
+                            ease: 'back.out(1.5)'
+                        });
+                    },
+                    once: true // Animate only once
+                });
+            });
+        }
+
+
+        // --- Add custom cursor effect ---
+        function createCustomCursor() {
+            const cursor = document.createElement('div');
+            cursor.className = 'custom-cursor';
+            document.body.appendChild(cursor);
+
+            gsap.set(cursor, {
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                border: '1px solid rgba(101, 163, 13, 0.7)', // Use border instead of bg
+                position: 'fixed',
+                pointerEvents: 'none',
+                // mixBlendMode: 'difference', // Can be performance heavy
+                zIndex: 9999,
+                 xPercent: -50, // Center the cursor
+                 yPercent: -50,
+                 opacity: 0 // Start hidden until first move
+            });
+
+            let mouseX = 0, mouseY = 0;
+             let cursorX = 0, cursorY = 0;
+             const speed = 0.15; // Smoothing factor
+
+             function animateCursor() {
+                 let distX = mouseX - cursorX;
+                 let distY = mouseY - cursorY;
+                 cursorX += distX * speed;
+                 cursorY += distY * speed;
+                 gsap.set(cursor, { x: cursorX, y: cursorY });
+                 requestAnimationFrame(animateCursor);
+             }
+             animateCursor(); // Start the loop
+
+             window.addEventListener('mousemove', e => {
+                 mouseX = e.clientX;
+                 mouseY = e.clientY;
+                 gsap.to(cursor, { opacity: 1, duration: 0.2 }); // Show cursor on first move
+            });
+
+
+            document.querySelectorAll('a, button, .interactive').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    gsap.to(cursor, {
+                        scale: 1.6, // Slightly larger scale
+                        backgroundColor: 'rgba(101, 163, 13, 0.3)', // Fill on hover
+                         borderWidth: 0, // Hide border
+                        duration: 0.3
+                    });
+                });
+
+                el.addEventListener('mouseleave', () => {
+                    gsap.to(cursor, {
+                        scale: 1,
+                        backgroundColor: 'transparent', // Revert fill
+                         borderWidth: '1px', // Show border
+                        duration: 0.3
+                    });
+                });
+            });
+        }
+
+        // --- Preload and sequence loader ---
+        function createLoader() {
+            const loader = document.createElement('div');
+            loader.className = 'fullscreen-loader';
+            loader.innerHTML = `
+                <svg viewBox="0 0 100 100" width="150" height="150">
+                <path class="tea-leaf" d="M50,30 Q60,10 70,30 T50,60 T30,30 T50,30" fill="none" stroke="#65a30d" stroke-width="2"/>
+                <circle class="tea-bubble" cx="50" cy="70" r="2" fill="#65a30d" opacity="0"/>
+                <circle class="tea-bubble" cx="60" cy="65" r="1.5" fill="#65a30d" opacity="0"/>
+                <circle class="tea-bubble" cx="40" cy="67" r="1.7" fill="#65a30d" opacity="0"/>
+                </svg>
+                <h2>Brewing your experience...</h2>
+            `;
+
+            gsap.set(loader, {
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-dark)',
+                zIndex: 10000,
+                opacity: 1
+            });
+
+            document.body.appendChild(loader);
+
+            // Animate loader elements - check if DrawSVGPlugin exists
+            const loaderTl = gsap.timeline({ repeat: -1, repeatDelay: 0.5 });
+             if (window.DrawSVGPlugin && DrawSVGPlugin.version !== "stub") {
+                loaderTl.fromTo('.tea-leaf',
+                    { drawSVG: "0%" },
+                    { drawSVG: "100%", duration: 1.8, ease: "power1.inOut" } // Slightly faster
+                );
+            } else {
+                 // Fallback if DrawSVG is not available
+                 loaderTl.fromTo('.tea-leaf', { opacity: 0 }, { opacity: 1, duration: 1 });
+             }
+
+            loaderTl.to('.tea-bubble', {
+                y: -25, // More vertical movement
+                opacity: 1,
+                stagger: 0.15,
+                duration: 0.8,
+                ease: "power1.out",
+            }, ">-1.5") // Overlap with leaf drawing
+            .to('.tea-bubble', {
+                 opacity: 0,
+                 duration: 0.5,
+                 ease: "power1.in"
+            }, ">-0.3");
+
+
+            // Function to dismiss loader
+            const dismissLoader = () => {
+                 // Ensure introTl is defined before playing
+                if (typeof introTl !== 'undefined') {
+                    gsap.to(loader, {
+                        opacity: 0,
+                        duration: 0.8, // Faster fade out
+                        ease: "power1.in",
+                        onComplete: () => {
+                            loader.remove();
+                             console.log("Loader removed, starting Intro animation.");
+                            introTl.play(); // Start the main intro animation
+                            // Enable scroll after loader is gone
+                            gsap.set('body', { overflowY: 'auto' });
+                        }
+                    });
+                } else {
+                     console.error("introTl timeline is not defined when trying to dismiss loader.");
+                     // Fallback if introTl isn't ready
+                     gsap.to(loader, { opacity: 0, duration: 1, onComplete: () => loader.remove() });
+                     gsap.set('body', { overflowY: 'auto' });
+                 }
+            };
+
+            // Dismiss loader when window loads or after a timeout
+             let loaderDismissed = false;
+             window.addEventListener('load', () => {
+                 if (!loaderDismissed) {
+                     console.log("Window loaded, dismissing loader.");
+                     dismissLoader();
+                     loaderDismissed = true;
+                 }
+             });
+
+            // Fallback timeout
+            setTimeout(() => {
+                if (!loaderDismissed) {
+                     console.log("Timeout reached, dismissing loader.");
+                     dismissLoader();
+                     loaderDismissed = true;
+                 }
+             }, 4000); // Increased timeout slightly
+
+             // Prevent scrolling while loader is active
+             gsap.set('body', { overflowY: 'hidden' });
+        }
+
+        // --- Initialize effects ---
+         if (window.matchMedia('(pointer: fine)').matches) { // Only init cursor on devices with fine pointer
+             createCustomCursor();
+         }
+        createLoader(); // Loader starts immediately
+        createTextReveal('.animate-text');
+        // createParallaxEffect(); // Initialize parallax using data-speed attributes - moved later after ST init
+
+
+        // --- Add global ambient animations ---
+        const bgParticles = new ParticleSystem('bg-particles', 30, {
+          colors: ['#65a30d', '#15803d', '#22c55e', '#d97706', '#facc15'], // Added more colors
+          minSize: 3, // Smaller min size
+          maxSize: 10, // Smaller max size
+          minDuration: 15,
+          maxDuration: 30, // Longer duration variation
+          blendMode: 'overlay', // Changed blend mode
+          shapes: ['leaf', 'circle']
+        });
+
+        console.log("Global effects initialized.");
+
+        // ---------- SECTION ANIMATIONS ----------
+
+        // --- Enhanced Intro Animation ---
+        const introTl = gsap.timeline({ paused: true }); // Start paused, loader will play it
+        introTl.set('body', { overflow: 'hidden'}) // Keep hidden until anim finishes
+            .fromTo('.logo',
+                { opacity: 0, scale: 0.8, y: -20 },
+                { opacity: 1, scale: 1, y: 0, duration: 1.0, ease: "back.out(1.7)" }, // Adjusted ease
+            0.1) // Start slightly after
+            .fromTo("#intro h1",
+                 { opacity: 0, y: 50, rotationX: 45 }, // Match CSS initial
+                 { opacity: 1, y: 0, rotationX: 0, duration: 1.2, ease: "back.out(1.7)" },
+            0.4) // Stagger start
+            .fromTo("#intro p",
+                 { opacity: 0, y: 30 }, // Match CSS initial
+                 { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+            0.8)
+            .fromTo('.scroll-indicator',
+                 { opacity: 0, y: 10 }, // Match CSS initial
+                 { opacity: 1, y: 0, duration: 0.6, ease: "power1.out" },
+            1.3)
+            .from('.floating-leaf', {
+                y: () => gsap.utils.random(-100, -50), // Random start Y
+                x: () => gsap.utils.random(-50, 50), // Random start X
+                rotation: () => gsap.utils.random(-45, 45),
+                scale: () => gsap.utils.random(0.5, 0.8),
+                opacity: 0,
+                duration: 1.8, // Longer duration
+                stagger: 0.25, // Slower stagger
+                ease: "elastic.out(1, 0.6)" // More bouncy ease
+            }, 1.1) // Start slightly later
+             .set('body', { overflow: 'auto'}, ">") // Enable scroll *after* main intro anims
+            // Continuous leaf float animation (added later, after introTl plays)
+            .add(() => {
+                console.log("Starting continuous leaf float.");
+                gsap.to('.floating-leaf', {
+                    y: "+=random(-25, 25)", // Random vertical float
+                    rotation: "+=random(-20, 20)",
+                    duration: "random(4, 7)", // Random duration
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut",
+                    stagger: {
+                        each: 0.4, // Stagger start times
+                        repeat: -1 // Repeat stagger
+                    }
+                });
+                gsap.to('.floating-leaf', {
+                    x: "+=random(-30, 30)", // Random horizontal float
+                    duration: "random(5, 8)",
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut",
+                    stagger: {
+                        each: 0.3,
+                        repeat: -1
+                    }
+                });
+            }, ">-0.5"); // Start float slightly before scroll enabled
+
+        // --- Advanced section transition effects ---
+         gsap.utils.toArray('.section').forEach((section, i) => {
+             if (!section) return; // Guard against null elements
+
+             const content = section.querySelector('.section-content');
+             const svgWrapper = section.querySelector('.svg-wrapper');
+
+             // Section fade-in (simpler than clip-path)
+             const sectionTl = gsap.timeline({
+                 scrollTrigger: {
+                     trigger: section,
+                     start: "top 85%", // Trigger earlier
+                     end: "top 50%", // Animate over a scroll distance
+                     scrub: 1, // Smooth scrub effect
+                     // markers: true, // Uncomment for debugging
+                     // toggleActions: "play none none reverse" // Use scrub instead
+                 }
+             });
+
+             sectionTl.fromTo(content,
+                 { y: 50, opacity: 0 },
+                 { y: 0, opacity: 1, duration: 1, ease: "power2.out" }
+             );
+             if (svgWrapper) {
+                 sectionTl.fromTo(svgWrapper,
+                     { scale: 0.9, opacity: 0 },
+                     { scale: 1, opacity: 1, duration: 1, ease: "back.out(1.4)" },
+                     "<0.2" // Start slightly after content
+                 );
+             }
+         });
+
+        // --- Enhance section heading animations ---
+        gsap.utils.toArray('.section-content h2').forEach(h2 => {
+             if (!h2) return; // Guard
+             const span = h2.querySelector('span');
+             const underline = h2.querySelector('::after'); // Pseudo-element target
+
+             const headingTl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: h2,
+                    start: "top 80%", // Trigger when heading is lower on screen
+                    // markers: true, // Uncomment for debugging
+                    toggleActions: "play none none reverse" // Play once on enter
+                }
+            });
+
+            headingTl.to(h2,
+                { y: 0, opacity: 1, duration: 0.8, ease: "back.out(1.7)" } // Animate from CSS state
+            );
+
+            if (span) {
+                 // Animate span text reveal (optional, adds complexity)
+                 // Could use the createTextReveal logic here too
+                 headingTl.fromTo(span,
+                     { /* Optional: Initial state like width 0 */ },
+                     { /* Optional: Final state */ duration: 0.6 },
+                     "<0.2"
+                 );
+            }
+
+             // Animate the ::after pseudo-element for the underline
+             // Note: GSAP can't directly animate pseudo-elements easily.
+             // Workaround: Use a real element or animate a CSS variable.
+             // Simpler approach: Add a class to trigger CSS transition (Less GSAP control).
+             // Let's stick to the GSAP approach if possible by targeting the ::after width directly (might require CSS var):
+             headingTl.to(h2, { // Target h2 and use CSS variable if needed
+                 '--underline-width': '80%', // Define --underline-width in CSS on h2::after
+                 duration: 0.7,
+                 ease: "power3.out"
+             }, "<0.3");
+             // Add to CSS: h2::after { width: var(--underline-width, 0); transition: width 0.7s power3.out; }
+             // OR use GSAP's CSSRulePlugin (more complex setup)
+             // Easiest way for this context: Trigger a class
+             headingTl.add(() => h2.classList.add('animate-underline'), "<0.3");
+             // Add to CSS: h2.animate-underline::after { width: 80%; transition: width 0.7s power3.out; }
+        });
+
+
+        // --- Scene 1: Harvesting - Enhanced ---
+        const harvestTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#harvest",
+            start: "top 60%", // Start animation earlier
+            end: "bottom top", // End when bottom hits top
+            scrub: 1.5, // Smoother scrub
+            // markers: true,
+          }
+        });
+
+        // Sun appearance and glow
+         harvestTl.fromTo("#sun-group",
+             { y: 50, autoAlpha: 0.5, scale: 0.7 }, // Start closer and semi-visible
+             { y: 0, autoAlpha: 1, scale: 1, duration: 1, ease: "back.out(1.2)" },
+             0 // Start immediately
+         )
+         .to("#sun-group circle:first-child", { // Target the outer circle for glow effect
+             attr: { r: 52 }, // Subtle pulse
+             filter: "url(#sunGlowFilter) drop-shadow(0 0 15px var(--accent-glow))", // Combine filters
+             duration: 2,
+             ease: "power2.inOut",
+             repeat: -1, // Continuous glow pulse
+             yoyo: true
+         }, 0.2) // Start slightly after sun appears
+         .to("#sun-rays", {
+             rotation: 360,
+             transformOrigin: "center center",
+             duration: 40, // Slower rotation
+             repeat: -1,
+             ease: "none"
+         }, 0); // Start rotating immediately
+
+        // Plantation elements fade/scale in
+         harvestTl.fromTo("#tea-plantation",
+             { y: 30, autoAlpha: 0 },
+             { y: 0, autoAlpha: 1, duration: 1, ease: "power2.out" },
+             0.3 // Stagger start
+         )
+         .fromTo("#tea-bushes g", { // Target individual bush groups
+             scale: 0.7,
+             autoAlpha: 0,
+             transformOrigin: "bottom center"
+         }, {
+             scale: 1,
+             autoAlpha: 1,
+             stagger: 0.1, // Stagger bush appearance
+             duration: 0.8,
+             ease: "back.out(1.5)"
+         }, 0.5)
+         .fromTo(".bush-leaf", {
+             scale: 0,
+             transformOrigin: "50% 100%", // Base of leaf
+             autoAlpha: 0
+         }, {
+             scale: 1,
+             autoAlpha: 1,
+             stagger: 0.03,
+             duration: 0.6,
+             ease: "elastic.out(1, 0.6)"
+         }, 0.8); // Leaves appear after bushes
+
+         // Picker appearance and simple animation
+         harvestTl.fromTo("#picker-group", {
+             x: -80, // Start further off
+             autoAlpha: 0
+         }, {
+             x: 0,
+             autoAlpha: 1,
+             duration: 1,
+             ease: "power3.out"
+         }, 0.6)
+         // Simple picking motion for picker 1
+         .to("#picker-1 .picker-arm", {
+             rotation: -20, // Bend arm
+             duration: 1.5,
+             repeat: -1,
+             yoyo: true,
+             ease: "sine.inOut",
+             delay: 0.5 // Start slightly after appearing
+         })
+          // Subtle sway for picker 1 body
+         .to("#picker-1", {
+             rotation: 3,
+             duration: 3,
+             repeat: -1,
+             yoyo: true,
+             ease: "sine.inOut"
+         }, ">") // Start after arm motion begins
+         // Subtle sway for picker 2
+         .to("#picker-2", {
+             rotation: -2,
+             duration: 4,
+             repeat: -1,
+             yoyo: true,
+             ease: "sine.inOut",
+             delay: 1
+         });
+
+
+        // Birds flying in
+        harvestTl.fromTo("#birds .bird", { // Target individual birds
+            x: (i) => -150 + (i * -30), // Staggered start X
+            y: (i) => gsap.utils.random(-40, 0), // Random start Y
+            autoAlpha: 0,
+            scale: 0.5
+        }, {
+            x: 0,
+            y: 0,
+            autoAlpha: 1,
+            scale: 1,
+            stagger: 0.25, // Stagger bird entry
+            duration: 1.2,
+            ease: "power2.out"
+        }, 0.9);
+
+        // Continuous bird flapping (simple scale)
+        gsap.to("#birds .bird", {
+            scaleY: 0.8,
+            transformOrigin: "center",
+            duration: 0.3,
+            stagger: 0.1,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+
+
+         // Create falling leaves dynamically (Simplified version)
+         function createFallingLeavesHarvest(count) {
+             const container = document.getElementById('falling-leaves-container');
+             if (!container) return; // Guard
+
+             const BBOX = container.getBoundingClientRect();
+             const svgElement = container.closest('svg'); // Find parent SVG
+             if (!svgElement) return;
+             const svgPoint = svgElement.createSVGPoint();
+
+             function getSVGCoords(x, y) {
+                 svgPoint.x = x;
+                 svgPoint.y = y;
+                 return svgPoint.matrixTransform(container.getScreenCTM().inverse());
+             }
+
+              const startArea = document.getElementById('main-bush'); // Start near main bush
+              let startX = 540;
+              let startY = 370;
+             if (startArea) {
+                 const bushBox = startArea.getBBox();
+                 startX = bushBox.x + bushBox.width / 2 + 540; // Adjust for transform
+                 startY = bushBox.y + bushBox.height / 2 + 370; // Adjust for transform
+             }
+
+
+             for (let i = 0; i < count; i++) {
+                 const leaf = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                 const leafType = Math.random() > 0.5 ?
+                 'M0,-4 Q3,-1 5,0 Q3,1 0,4 Q-3,1 -5,0 Q-3,-1 0,-4 Z' : // Smaller leaf shapes
+                 'M0,-3 Q4,0 0,3 Q-4,0 0,-3 Z';
+
+                 leaf.setAttribute('d', leafType);
+                 leaf.setAttribute('fill', gsap.utils.random(['#65a30d', '#15803d', '#22c55e']));
+                 leaf.setAttribute('class', 'falling-leaf'); // Add class if needed elsewhere
+                 leaf.setAttribute('opacity', 0); // Start hidden
+                 container.appendChild(leaf);
+
+                 const fallDuration = gsap.utils.random(3, 6); // Shorter fall time
+                 const endY = 550; // Fall towards bottom of SVG
+
+                 gsap.set(leaf, {
+                     x: startX + gsap.utils.random(-20, 20), // Start near bush
+                     y: startY + gsap.utils.random(-10, 10),
+                     rotation: gsap.utils.random(0, 360),
+                     scale: gsap.utils.random(0.6, 1.1)
+                 });
+
+                 // Simple fall animation triggered by scroll
+                  gsap.to(leaf, {
+                     motionPath: {
+                         path: [ // Simplified path
+                             {x: startX + gsap.utils.random(-20, 20), y: startY + gsap.utils.random(-10, 10) },
+                             {x: startX + gsap.utils.random(-80, 80), y: startY + 80},
+                             {x: startX + gsap.utils.random(-120, 120), y: endY}
+                         ],
+                         curviness: 1.2,
+                         // autoRotate: true // Can make leaves look unnatural
+                     },
+                     rotation: `+=${gsap.utils.random(-540, 540)}`, // More rotation
+                     scale: "-=0.2", // Shrink slightly
+                     opacity: 0, // Fade out at end
+                     duration: fallDuration,
+                     delay: gsap.utils.random(0, 2), // Random delay for each leaf
+                     ease: "power1.in", // Accelerate downwards
+                     scrollTrigger: {
+                         trigger: "#harvest",
+                         start: "top 30%", // Trigger when scrolled further down
+                         // markers: true, // Uncomment for debugging
+                         toggleActions: "play none none none" // Play once
+                     }
+                 });
+                  // Initial fade in
+                  gsap.to(leaf, {opacity: gsap.utils.random(0.7, 1), duration: 0.5, delay: gsap.utils.random(0, 2)});
+             }
+         }
+
+         createFallingLeavesHarvest(10); // Create 10 leaves
+
+
+        // --- Scene 2: Processing - Enhanced ---
+        const processingTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#processing",
+            start: "top 60%", // Adjust trigger point
+            end: "bottom center", // Adjust end point
+            scrub: 1.5,
+            // markers: true,
+          }
+        });
+
+        // Factory environment appearance
+         processingTl.fromTo("#factory-bg",
+             { autoAlpha: 0, scale: 1.05 }, // Start slightly scaled up
+             { autoAlpha: 1, scale: 1, duration: 1, ease: "power2.out" },
+             0
+         )
+         .fromTo("#conveyor-group", {
+             x: "-20%", // Start partially visible
+             autoAlpha: 0
+         }, {
+             x: "0%",
+             autoAlpha: 1,
+             duration: 1.2,
+             ease: "power3.out"
+         }, 0.2)
+         .fromTo("#machine-group", {
+             y: 80, // Start lower
+             autoAlpha: 0,
+             scale: 0.9
+         }, {
+             y: 0,
+             autoAlpha: 1,
+             scale: 1,
+             duration: 1,
+             ease: "back.out(1.4)"
+         }, 0.3)
+         .fromTo("#worker", {
+             x: 80, // Start further off
+             autoAlpha: 0
+         }, {
+             x: 0,
+             autoAlpha: 1,
+             duration: 0.8,
+             ease: "power2.out"
+         }, 0.5);
+
+        // Conveyor belt movement (using background position if CSS pattern is used, or animating elements on belt)
+         // Assuming #conveyor-belt is the rect with the pattern style
+         gsap.to("#conveyor-belt", { // Use GSAP for background position
+             backgroundPosition: "-200px 0px", // Adjust distance for visual speed
+             duration: 5, // Control speed
+             repeat: -1,
+             ease: "none",
+         }); // Independent animation, not tied to scroll necessarily
+
+        // Machine vibration (subtle)
+         gsap.to("#machine-group", {
+             x: 'random(-1, 1)',
+             y: 'random(-0.5, 0.5)',
+             duration: 0.05, // Faster vibration
+             repeat: -1,
+             ease: "none",
+             repeatRefresh: true // Recalculate random values each time
+         });
+
+        // Steam effect - simpler fade/rise
+        processingTl.fromTo(".machine-steam", {
+            y: 10, // Start lower
+            autoAlpha: 0,
+            scale: 0.5
+        }, {
+            y: -40, // Rise higher
+            autoAlpha: 0.6,
+            scale: 1,
+            duration: 2.5, // Slower duration
+            stagger: 0.4,
+            repeat: -1,
+            repeatDelay: 1,
+            ease: "power1.out"
+        }, 0.8);
+
+        // Loose leaves animation (Simplified: fade in/move across belt)
+         processingTl.call(() => {
+             const container = document.getElementById('loose-leaves');
+             if (!container) return;
+             container.innerHTML = ''; // Clear previous if scrubbing back
+
+             const leafShapes = ['M0,-4 Q3,-1 5,0 Q3,1 0,4 Q-3,1 -5,0 Q-3,-1 0,-4 Z','M0,-3 Q4,0 0,3 Q-4,0 0,-3 Z'];
+             const leafColors = ['#65a30d', '#15803d', '#22c55e', '#4ade80'];
+
+             for(let i=0; i<15; i++) { // Fewer leaves for performance
+                 const leaf = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                 leaf.setAttribute('d', leafShapes[i % leafShapes.length]);
+                 leaf.setAttribute('fill', leafColors[i % leafColors.length]);
+                 leaf.setAttribute('opacity', '0');
+                 const startX = gsap.utils.random(50, 150); // Start near left side of conveyor
+                 const startY = 310 + gsap.utils.random(-5, 5); // On the belt
+                 leaf.setAttribute('transform', `translate(${startX}, ${startY}) rotate(${Math.random() * 360}) scale(${0.7 + Math.random()*0.5})`);
+                 container.appendChild(leaf);
+
+                 // Animate leaf across conveyor with scrollTrigger interaction
+                 gsap.fromTo(leaf,
+                     { x: startX, opacity: 0 },
+                     {
+                         x: startX + 500, // Move across the visible belt area
+                         opacity: 1,
+                         rotation: "+=" + gsap.utils.random(-180, 180),
+                         duration: gsap.utils.random(3, 5), // Vary speed slightly
+                         ease: "none",
+                         scrollTrigger: {
+                              trigger: "#processing",
+                              containerAnimation: processingTl, // Link to main section timeline
+                              start: "top center", // Start when section is centered
+                              end: "bottom top",
+                              scrub: true, // Move with scroll within the section
+                          },
+                         delay: gsap.utils.random(0, 1.5) // Stagger appearance
+                     }
+                 );
+                  // Fade out at the end
+                 gsap.to(leaf, {
+                     opacity: 0,
+                     duration: 0.5,
+                     scrollTrigger: {
+                         trigger: "#processing",
+                         containerAnimation: processingTl,
+                         start: "bottom 30%", // Start fading before section end
+                         end: "bottom top",
+                         scrub: true,
+                     }
+                 });
+             }
+         }, [], 0.6); // Call after conveyor is visible
+
+
+        // Tea bag forming animation
+        processingTl.fromTo("#tea-bag-forming",
+            { autoAlpha: 0, scale: 0.5, y: -20, transformOrigin: "center 80%" }, // Start above chute
+            { autoAlpha: 1, scale: 1, y: 0, duration: 0.8, ease: "back.out(1.7)" },
+            ">-0.4" // Overlap end of leaf animation
+        )
+        .to("#tea-bag-forming", {
+             y: "+=80", // Fall down onto belt
+             x: "+=50", // Move slightly right
+             rotation: 15,
+             scale: 0.8,
+             autoAlpha: 0, // Fade out as it moves off
+             duration: 1.5,
+             ease: "power1.in",
+        }, ">0.5"); // Start after fully formed
+
+
+        // Worker simple interaction animation
+         processingTl.to("#worker", {
+             x: "-=15",
+             rotation: 5,
+             duration: 1.5,
+             ease: "sine.inOut"
+             // No repeat, just a single motion linked to scroll
+         }, 0.6); // Worker moves as machine appears
+
+        // --- Scene 3: Packaging - Enhanced ---
+        const packagingTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#packaging",
+            start: "top 60%",
+            end: "bottom center",
+            scrub: 1.2,
+            // markers: true,
+          }
+        });
+
+        // Packaging environment
+         packagingTl.fromTo("#packaging-bg",
+             { autoAlpha: 0 },
+             { autoAlpha: 1, duration: 1 },
+             0
+         );
+
+        // Generate tea bags dynamically
+         packagingTl.call(() => {
+             const container = document.getElementById('packaged-bags');
+             if (!container) return;
+             container.innerHTML = ''; // Clear previous
+
+             const tagColors = ['#d97706', '#b45309', '#92400e', '#78350f'];
+             const bagShapes = ['M 0 0 L 40 0 L 40 50 L 20 60 L 0 50 Z']; // Use one shape for simplicity
+
+             for(let i=0; i<8; i++) { // Fewer bags
+                 const tagColor = tagColors[i % tagColors.length];
+                 const tagShape = `<rect x="15" y="-15" width="10" height="5" fill="${tagColor}" rx="1"/>`;
+
+                 const bag = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                 bag.classList.add('packaged-bag');
+                 const startX = -100 + i * 80; // Start offscreen left, spaced out
+                 bag.setAttribute('transform', `translate(${startX}, 280)`); // Position above belt
+                 bag.setAttribute('opacity', '0'); // Start hidden
+
+                 bag.innerHTML = `
+                 <g filter="url(#bagShadow)"> <!-- Apply shadow -->
+                     <path d="${bagShapes[0]}" fill="#f3f4f6" stroke="#9ca3af" stroke-width="0.5"/>
+                 </g>
+                 <line x1="20" y1="0" x2="20" y2="-10" stroke="#9ca3af" stroke-width="0.5"/>
+                 ${tagShape}
+                 <text x="20" y="-12" font-family="Poppins" font-size="3" fill="#333" text-anchor="middle">TEA</text> <!-- Darker text -->
+                 `;
+
+                 container.appendChild(bag);
+
+                 // Animate bags along the line
+                  gsap.to(bag, {
+                     x: "+=1000", // Move far right
+                     opacity: 1,
+                     duration: 8 + gsap.utils.random(-1, 1), // Vary speed slightly
+                     ease: "none",
+                     stagger: 0.5, // Stagger entry
+                     scrollTrigger: {
+                         trigger: "#packaging",
+                         containerAnimation: packagingTl, // Link to section timeline
+                         start: "top 50%",
+                         end: "bottom top",
+                         scrub: 1.5, // Move with scroll
+                     }
+                 });
+             }
+         }, [], 0.2); // Call early in the timeline
+
+        // Robotic arm animation
+         packagingTl.fromTo("#robot-arm-base", {
+             y: -80, autoAlpha: 0
+         }, {
+             y: 0, autoAlpha: 1, duration: 0.8, ease: "back.out(1.2)"
+         }, 0.4)
+         .fromTo("#robot-arm-joint", {
+             rotation: -45, autoAlpha: 0
+         }, {
+             rotation: 10, autoAlpha: 1, duration: 0.7, ease: "back.out(1.7)"
+         }, "<0.2")
+         .fromTo("#robot-arm-claw", {
+             scale: 0, autoAlpha: 0
+         }, {
+             scale: 1, autoAlpha: 1, duration: 0.6, ease: "elastic.out(1, 0.5)"
+         }, "<0.1")
+         // Picking motion (example - needs coordination with bag position)
+          .to("#robot-arm-joint", { rotation: -10, duration: 0.5, ease: "power1.inOut" }, ">0.5")
+          .to("#robot-arm-claw", { scaleX: 0.7, duration: 0.3, ease: "power1.in" }, "<") // Close claw
+          .to("#robot-arm-base", { y: -20, duration: 0.5, ease: "power1.inOut" }, ">") // Lift
+          .to("#robot-arm-joint", { rotation: 60, duration: 0.8, ease: "power2.inOut" }, "<") // Move towards box area
+          .to("#robot-arm-base", { y: 10, duration: 0.5, ease: "power1.inOut" }, ">") // Lower
+          .to("#robot-arm-claw", { scaleX: 1, duration: 0.3, ease: "power1.out" }, ">") // Open claw
+          .to("#robot-arm-joint", { rotation: 10, duration: 0.6, ease: "power1.inOut" }, ">"); // Return
+
+
+        // Box animation
+         packagingTl.fromTo("#tea-box-group", {
+             autoAlpha: 0, y: 50, rotationX: 20, transformPerspective: 600, transformOrigin:"center 100px" // Rotate around center
+         }, {
+             autoAlpha: 1, y: 0, rotationX: 0, duration: 1.0, ease: "back.out(1.7)"
+         }, 1.5) // Start after arm starts moving
+         .fromTo("#box-base",
+             { scaleY: 0, transformOrigin: "50% 0%" }, // Scale from top
+             { scaleY: 1, duration: 0.6, ease: "elastic.out(1, 0.5)" },
+             ">-0.2" // Overlap slightly
+         )
+         .fromTo("#box-lid-group",
+             { rotationX: -100, y: -15, autoAlpha: 0 }, // Start more closed
+             { rotationX: 0, y: 0, autoAlpha: 1, duration: 0.8, ease: "back.out(1.7)" },
+             ">-0.1"
+         );
+
+        // Animate bags falling into the box (Simplified - needs exact target position)
+         // This part is tricky without knowing the exact box position relative to bags
+         // Placeholder: Fade out bags near the box area
+         gsap.to(".packaged-bag", {
+             autoAlpha: 0,
+             scale: 0.5,
+             duration: 0.5,
+             ease: "power1.in",
+             scrollTrigger: {
+                 trigger: "#tea-box-group", // Trigger when box is visible
+                 start: "center 70%", // When box is lower center
+                 end: "center 50%",
+                 // markers: true,
+                 scrub: true,
+                 // Affect only bags currently near the box (needs filtering logic)
+             }
+         });
+
+        // Close box and move off
+         packagingTl.to("#box-lid-group", {
+             rotationX: -100, y: -15, duration: 0.8, ease: "back.in(1.7)"
+         }, ">1.0") // Wait a bit after box appears
+         .to("#tea-box-group", {
+             x: "+=400", y: "-=30", rotation: "-10", autoAlpha: 0, duration: 1.2, ease: "power2.in"
+         }, ">0.2");
+
+        // --- Scene 4: Transport - Enhanced with Cinematic Effects ---
+        const transportTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: "#transport",
+              start: "top top", // Pin starts immediately
+              end: "+=200%", // Pin for 2 screen heights
+              scrub: 1.0, // Slower scrub for cinematic feel
+              pin: true,
+              pinSpacing: true, // Keep space after pin
+              // markers: true, // {startColor: "green", endColor: "red"}
+            }
+        });
+
+        // Landscape layers parallax (using the SVG groups)
+         // Background Layers Parallax (relative to pinned section scroll)
+         transportTl.to("#mountains-far", { xPercent: -15, ease: "none" }, 0) // Slowest
+                  .to("#mountains-mid", { xPercent: -30, ease: "none" }, 0)
+                  .to("#mountains-near", { xPercent: -50, ease: "none" }, 0)
+                  .to("#road-layer", { xPercent: -100, ease: "none" }, 0); // Fastest
+
+        // Truck animation across the screen
+         transportTl.fromTo("#truck-group",
+             { xPercent: -50, autoAlpha: 0 }, // Start off-screen left
+             { xPercent: 0, autoAlpha: 1, duration: 1, ease: "power2.out" }, // Enter screen
+              0.5 // Start slightly after pinning
+         )
+         .to("#truck-group", {
+             xPercent: 100, // Move across and off-screen right
+             duration: 8, // Duration controls speed across pinned section
+             ease: "power1.inOut" // Smooth acceleration/deceleration
+         }, 1.5); // Start moving after fully entered
+
+
+        // Wheel Rotation - Use a separate tween for continuous rotation linked to truck movement
+         gsap.to(["#front-wheel", "#back-wheel"], {
+             rotation: 360 * 10, // Rotate many times
+             ease: "none",
+             scrollTrigger: {
+                 trigger: "#transport",
+                 containerAnimation: transportTl, // Link to the pinning timeline
+                 start: "top top",
+                 end: "bottom bottom", // Rotate for the duration of the pin
+                 scrub: true, // Rotate based on scroll progress within pin
+             }
+         });
+
+          // Truck body physics simulation (subtle bounce/sway)
+         transportTl.to("#truck-body", {
+              y: "-=3", // Bounce up
+              rotation: 0.5,
+              duration: 0.5,
+              ease: "sine.inOut",
+              repeat: 5, // Bounce a few times during journey
+              yoyo: true
+          }, 2.5); // Start bouncing partway through
+         transportTl.to("#truck-body", {
+              rotation: -0.3,
+              duration: 1.5,
+              ease: "sine.inOut",
+              repeat: 2,
+              yoyo: true
+          }, 4.0); // Add some sway
+
+
+        // Cloud animation - Parallax + Drift
+         gsap.utils.toArray(".cloud").forEach((cloud, i) => {
+             const startX = gsap.utils.random(0, 50); // Start slightly offset horizontally
+             const startY = (i * 20 + 10) + '%'; // Distribute vertically
+             const speed = parseFloat(cloud.getAttribute('data-speed')) || -0.1; // Get speed from data attribute
+
+             gsap.set(cloud, { x: `${startX}%`, y: startY, opacity: 0 });
+
+             // Fade in clouds
+             transportTl.to(cloud, {
+                 opacity: gsap.utils.random(0.6, 0.9),
+                 duration: 1.5,
+                 ease: "power1.inOut"
+             }, 0.5 + i * 0.2); // Stagger fade-in
+
+             // Parallax scroll linked to main timeline
+             transportTl.to(cloud, {
+                 x: `${startX + (speed * -100)}%`, // Move based on data-speed
+                 ease: "none"
+             }, 0); // Apply parallax throughout the scroll
+
+             // Independent slow horizontal drift
+             gsap.to(cloud, {
+                 x: "+=50%", // Slow drift to the right
+                 duration: gsap.utils.random(40, 80), // Very slow
+                 repeat: -1,
+                 yoyo: true,
+                 ease: "sine.inOut",
+                 delay: i * 5 // Stagger the start of the slow drift
+             });
+         });
+
+         // Road markings animation (looping effect)
+          transportTl.fromTo(".road-marking",
+             { x: "110%" }, // Start off right
+             {
+                 x: "-10%", // Move off left
+                 stagger: 0.4, // Spacing between markings
+                 duration: 1, // Speed of one marking crossing
+                 ease: "none",
+                 repeat: -1 // Loop this animation
+             },
+             1.0 // Start after truck starts moving
+         );
+
+
+        // Dynamic lighting effect
+         transportTl.fromTo("#lighting-overlay",
+             { opacity: 0 },
+             { opacity: 0.2, duration: 3, ease: "sine.inOut", yoyo: true, repeat: 1 }, // Fade in and out once
+             3.0 // Trigger during the middle of the transport
+         );
+
+
+        // --- Scene 5: Delivery & Enjoyment - Enhanced ---
+        const deliveryTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: "#delivery",
+              start: "top 60%", // Trigger earlier
+              end: "bottom 80%", // End sooner
+              scrub: 1,
+              // markers: true,
+            }
+        });
+
+        // Environment setup
+        deliveryTl.fromTo("#delivery-bg",
+            { autoAlpha: 0, scale: 1.05 },
+            { autoAlpha: 1, scale: 1, duration: 1, ease: "power2.out" },
+            0
+        )
+        .fromTo("#coffee-table",
+            { y: 50, autoAlpha: 0 },
+            { y: 0, autoAlpha: 1, duration: 0.8, ease: "back.out(1.2)" },
+            0.2
+        )
+        .fromTo("#window-light",
+            { opacity: 0, scale: 0.8 },
+            { opacity: 0.08, scale: 1, duration: 1.5, ease: "sine.inOut" }, // Subtle light
+            0.1
+        );
+
+        // Box arrives
+        deliveryTl.fromTo("#final-box", {
+            x: -80, autoAlpha: 0, rotation: -10, scale: 0.8
+        }, {
+            x: 0, autoAlpha: 1, rotation: 0, scale: 0.6, // Already scaled in HTML
+            duration: 1.0, ease: "elastic.out(1, 0.5)"
+        }, 0.4);
+
+        // Hand appears and interacts
+        deliveryTl.fromTo("#hand-group", {
+            autoAlpha: 0, y: 50, x: -50, rotation: -15 // Start lower and rotated
+        }, {
+            autoAlpha: 1, y: 0, x: 0, rotation: 0, duration: 1, ease: "power3.out"
+        }, 0.6)
+        // Hand moves towards box (adjust timing/position)
+        .to("#hand-group", {
+             x: -30, y: 10, rotation: 5, duration: 0.8, ease: "power1.inOut"
+        }, ">0.2")
+         // Box nudged by hand
+        .to("#final-box", {
+            x: 15, rotation: 3, duration: 0.8, ease: "power1.inOut"
+        }, "<");
+
+
+        // Cup appears
+        deliveryTl.fromTo("#cup-group", {
+            autoAlpha: 0, scale: 0.7, y: 50, rotation: -10 // Start lower and rotated
+        }, {
+            autoAlpha: 1, scale: 1, y: 0, rotation: 0, duration: 1, ease: "back.out(1.7)"
+        }, 1.0); // Appear after hand interaction starts
+
+        // Leaves appear in cup
+        deliveryTl.fromTo(".cup-leaf", {
+            scale: 0, opacity: 0, y: 10 // Start slightly below surface
+        }, {
+            scale: 1, opacity: 0.7, y: 0, stagger: 0.15, duration: 0.8, ease: "elastic.out(1, 0.6)"
+        }, ">-0.3"); // Appear as cup settles
+
+        // Spoon appears
+         deliveryTl.fromTo("#spoon-group", {
+             autoAlpha: 0, x: -50, rotation: -45 // Start further off
+         }, {
+             autoAlpha: 1, x: 0, rotation: 0, duration: 1, ease: "back.out(1.2)"
+         }, 1.2); // Appear after cup
+
+
+        // Steam animation
+        deliveryTl.fromTo("#steam-group",
+            { autoAlpha: 0, y: 10 }, // Start slightly lower
+            { autoAlpha: 0.8, y: 0, duration: 0.6 },
+            ">0.3" // Start after cup leaves appear
+        )
+        .add(() => {
+            // Check if MorphSVGPlugin is available before using it
+            if (window.MorphSVGPlugin && MorphSVGPlugin.version !== "stub") {
+                 console.log("Starting steam morph animation.");
+                // Dynamic steam morphing
+                gsap.to("#steam1", {
+                    morphSVG: { shape: "#steam1", map: "complexity" }, // Morph to itself with variations
+                    attr: { d: "M 50 10 C 35 -20, 65 -25, 55 -50" }, // Target shape
+                    y: -15, // Vertical drift
+                    scale: 1.1,
+                    duration: 4, repeat: -1, yoyo: true, ease: "sine.inOut"
+                });
+                gsap.to("#steam2", {
+                    morphSVG: { shape: "#steam2", map: "complexity" },
+                    attr: { d: "M 75 15 C 80 -15, 70 -35, 75 -60" },
+                    y: -10, scale: 1.05,
+                    duration: 3.5, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 0.5
+                });
+                gsap.to("#steam3", {
+                    morphSVG: { shape: "#steam3", map: "complexity" },
+                    attr: { d: "M 100 10 C 115 -20, 85 -30, 95 -55" },
+                    y: -20, scale: 1.15,
+                    duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 1
+                });
+             } else {
+                 console.log("MorphSVGPlugin not available, using simple steam fade.");
+                 // Fallback simple steam animation
+                  gsap.to(["#steam1", "#steam2", "#steam3"], {
+                     y: "-=30",
+                     opacity: 0,
+                     scale: 1.2,
+                     duration: 2.5,
+                     stagger: 0.3,
+                     repeat: -1,
+                     ease: "power1.out"
+                 });
+             }
+        });
+
+        // Spoon resting animation
+         deliveryTl.to("#spoon-group", {
+             rotation: 5, x: 5, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut"
+         }, ">"); // Start after steam
+
+        // Final caption fade in
+        deliveryTl.fromTo(".final-caption", {
+            autoAlpha: 0, y: 20
+        }, {
+            autoAlpha: 1, y: 0, duration: 1, ease: "back.out(1.5)"
+        }, ">0.5"); // Appear towards the end
+
+
+        // Tea bubbles (simplified)
+        gsap.utils.toArray('.tea-bubble').forEach((bubble, i) => {
+            const size = gsap.utils.random(8, 18); // Smaller bubbles
+            const duration = gsap.utils.random(2, 5); // Faster rise
+            const delay = i * 0.8;
+
+            gsap.set(bubble, {
+                width: size, height: size,
+                x: gsap.utils.random(360, 440), // Position near cup center in SVG coords
+                y: 300, // Start near bottom of cup
+                opacity: 0 // Start hidden
+            });
+
+            // Animate bubble rising - triggered when section is active
+             gsap.to(bubble, {
+                 y: 200, // Rise towards top of cup liquid
+                 x: "+=" + gsap.utils.random(-15, 15), // Slight horizontal drift
+                 opacity: gsap.utils.random(0.2, 0.6), // Fade in
+                 scale: 1.1,
+                 duration: duration * 0.7,
+                 delay: delay,
+                 ease: "power1.out",
+                 scrollTrigger: {
+                     trigger: "#delivery",
+                     start: "top 30%", // Trigger when cup is well in view
+                     toggleActions: "play none none reverse" // Play when entering
+                 }
+             });
+              gsap.to(bubble, {
+                 opacity: 0, // Fade out at top
+                 duration: duration * 0.3,
+                 delay: delay + duration * 0.7,
+                 ease: "power1.in",
+                  scrollTrigger: {
+                     trigger: "#delivery",
+                     start: "top 30%",
+                     toggleActions: "play none none reverse"
+                 }
+             });
+        });
+
+        // Create ambient floating background leaves
+        function createBackgroundLeaves() {
+            const container = document.getElementById('bg-leaves-container');
+            if (!container) return; // Guard
+            const colors = ['#65a30d', '#15803d', '#22c55e'];
+            const count = 10; // Fewer leaves
+
+            for (let i = 0; i < count; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'bg-leaf';
+                const size = gsap.utils.random(30, 60); // Larger leaves
+
+                 // Use SVG for better quality leaves if possible
+                 leaf.style.width = `${size}px`;
+                 leaf.style.height = `${size}px`;
+                 leaf.style.position = 'absolute';
+                 leaf.style.left = `${gsap.utils.random(0, 100)}%`;
+                 leaf.style.top = `${gsap.utils.random(0, 100)}%`;
+                 leaf.style.opacity = 0; // Start hidden
+                 leaf.style.zIndex = -1;
+                 leaf.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50,10 C70,0 90,20 80,40 C100,60 70,90 50,80 C30,90 0,60 20,40 C10,20 30,0 50,10 Z" fill="${colors[i % colors.length]}" opacity="0.2"/></svg>')`;
+                 leaf.style.backgroundSize = 'contain';
+                 leaf.style.backgroundRepeat = 'no-repeat';
+
+
+                container.appendChild(leaf);
+
+                 // Slow floating animation - independent of scroll
+                 gsap.to(leaf, {
+                     x: `random(-40, 40)`,
+                     y: `random(-40, 40)`,
+                     rotation: `random(-90, 90)`,
+                     opacity: `random(0.05, 0.15)`, // Very subtle
+                     duration: gsap.utils.random(25, 45),
+                     repeat: -1,
+                     yoyo: true,
+                     ease: "sine.inOut",
+                     delay: i * 1.5 // Stagger start times
+                 });
+            }
+        }
+        createBackgroundLeaves();
+
+
+        // --- Add advanced scroll-linked effects ---
+
+        // Initialize parallax effect using data-speed attributes AFTER ScrollTrigger is ready
+        createParallaxEffect();
+
+        // Enhanced scroll indicator bounce (using GSAP)
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+        if (scrollIndicator) {
+            gsap.to(scrollIndicator, {
+                y: 15, // Match CSS bounce height
+                scale: 1.1, // Add subtle scale
+                duration: 1.25, // Match CSS half-duration
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        }
+
+        // Create a scroll progress indicator
+        const progressBar = document.createElement('div');
+        progressBar.className = 'scroll-progress';
+        document.body.appendChild(progressBar);
+        gsap.set(progressBar, {
+            position: 'fixed', top: 0, left: 0, height: '4px', width: '0%',
+            background: 'var(--accent-color)', zIndex: 10000 // Ensure it's on top
+        });
+        gsap.to(progressBar, {
+            width: '100%', ease: 'none',
+            scrollTrigger: {
+                trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: 0.1 // Faster scrub
+            }
+        });
+
+        // --- Enhanced scroll to top button ---
+        const scrollToTopBtn = document.createElement('div'); // Renamed variable
+        scrollToTopBtn.className = 'scroll-to-top interactive'; // Add interactive class
+        scrollToTopBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" /></svg>`;
+        document.body.appendChild(scrollToTopBtn);
+
+        gsap.set(scrollToTopBtn, {
+            opacity: 0, y: 30, scale: 0.8, position: 'fixed', bottom: '30px', right: '30px',
+            width: '50px', height: '50px', borderRadius: '50%', background: 'var(--accent-color)',
+            color: 'var(--bg-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', zIndex: 1001, boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+        });
+
+        scrollToTopBtn.addEventListener('click', () => {
+            gsap.to(window, { scrollTo: { y: 0, autoKill: false }, duration: 1.5, ease: "power3.inOut" }); // Smoother ease
+            gsap.to(scrollToTopBtn, { scale: 0.7, duration: 0.2, yoyo: true, repeat: 1, ease: "power1.inOut" });
+        });
+
+        // Show/hide based on scroll position
+        ScrollTrigger.create({
+            start: 'top -200', // Show after scrolling down 200px
+            end: 'max',
+            onUpdate: (self) => {
+                 const isActive = self.isActive;
+                 const isScrollingUp = self.direction === -1;
+
+                 if (isScrollingUp && isActive) {
+                     gsap.to(scrollToTopBtn, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.7)" });
+                 } else if (!isScrollingUp && isActive) {
+                     // Optional: Keep visible while scrolling down after initial appearance
+                      gsap.to(scrollToTopBtn, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.7)" });
+                 }
+                  else { // Hide when at top or scrolling down before trigger point
+                     gsap.to(scrollToTopBtn, { opacity: 0, y: 30, scale: 0.8, duration: 0.3, ease: "power3.in" });
+                 }
+             }
+        });
+
+        // --- Add section navigation dots ---
+        function createNavDots() {
+            const sections = gsap.utils.toArray('.section'); // Use the added class
+            if (sections.length === 0) return; // Don't create if no sections
+
+            const nav = document.createElement('div');
+            nav.className = 'section-nav';
+            gsap.set(nav, {
+                position: 'fixed', right: '20px', top: '50%', transform: 'translateY(-50%)',
+                display: 'flex', flexDirection: 'column', gap: '15px', zIndex: 1002
+            });
+
+            sections.forEach((section, i) => {
+                 const sectionName = section.getAttribute('data-section-name') || `Scene ${i+1}`;
+                 if (!sectionName) return; // Skip if no name
+
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot interactive'; // Add interactive class
+                const label = document.createElement('span');
+                label.className = 'nav-label';
+                label.textContent = sectionName;
+
+                gsap.set(dot, {
+                    width: '12px', height: '12px', borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.5)', cursor: 'pointer', position: 'relative' // Needed for label absolute positioning
+                });
+                gsap.set(label, {
+                    position: 'absolute', right: '25px', top: '50%', transform: 'translateY(-50%)', // Center label vertically
+                    color: '#fff', fontSize: '13px', opacity: 0, pointerEvents: 'none',
+                    background: 'rgba(0,0,0,0.6)', padding: '3px 8px', borderRadius: '4px' // Added background
+                });
+
+                dot.appendChild(label);
+                nav.appendChild(dot);
+
+                // Hover effect
+                dot.addEventListener('mouseenter', () => {
+                    gsap.to(label, { opacity: 1, x: -5, duration: 0.3 });
+                    gsap.to(dot, { background: 'var(--accent-color)', scale: 1.3, duration: 0.3 });
+                });
+                dot.addEventListener('mouseleave', () => {
+                    if (!dot.classList.contains('active')) { // Don't revert if active
+                         gsap.to(label, { opacity: 0, x: 0, duration: 0.3 });
+                         gsap.to(dot, { background: 'rgba(255,255,255,0.5)', scale: 1, duration: 0.3 });
+                     }
+                });
+
+                // Navigate to section
+                dot.addEventListener('click', () => {
+                    gsap.to(window, { scrollTo: { y: section, autoKill: false }, duration: 1.2, ease: "power2.inOut" });
+                });
+
+                // Highlight active section
+                ScrollTrigger.create({
+                    trigger: section,
+                    start: 'top center+=100', // Adjust trigger points for activation
+                    end: 'bottom center-=100',
+                    // markers: true, // Debug activation zone
+                    onToggle: self => {
+                        if (self.isActive) {
+                             gsap.to(dot, { background: 'var(--accent-color)', scale: 1.3, duration: 0.3 });
+                             dot.classList.add('active');
+                             gsap.to(label, { opacity: 1, x: -5, duration: 0.3 }); // Show label when active
+                         } else {
+                             gsap.to(dot, { background: 'rgba(255,255,255,0.5)', scale: 1, duration: 0.3 });
+                             dot.classList.remove('active');
+                             gsap.to(label, { opacity: 0, x: 0, duration: 0.3 }); // Hide label when inactive
+                         }
+                    }
+                });
+            });
+
+            document.body.appendChild(nav);
+        }
+        createNavDots();
+
+        // --- Add ambient audio controls (optional) ---
+        function createAudioControls() {
+            // Check if Audio context is available
+            if (typeof(Audio) === 'undefined') {
+                console.warn("Audio API not supported, skipping audio controls.");
+                return;
+            }
+
+            const audioControl = document.createElement('div');
+            audioControl.className = 'audio-control interactive';
+            audioControl.innerHTML = `
+                <svg class="audio-icon" width="24" height="24" viewBox="0 0 24 24">
+                <path class="audio-on" fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                 <path class="audio-off" fill="currentColor" d="M3,9H7L12,4V20L7,15H3V9M16.59,12L14,9.41L15.41,8L18,10.59L20.59,8L22,9.41L19.41,12L22,14.59L20.59,16L18,13.41L15.41,16L14,14.59L16.59,12Z" style="display: none;"/> <!-- Mute Icon -->
+                </svg>
+                <div class="audio-tooltip">Enable ambient sounds</div>
+            `;
+
+            gsap.set(audioControl, {
+                position: 'fixed', bottom: '30px', left: '30px', width: '45px', height: '45px',
+                borderRadius: '50%', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(5px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                zIndex: 1001, color: '#fff'
+            });
+
+            let audioEnabled = false;
+            let currentAudio = null;
+            const audioElements = {}; // Store audio elements here
+
+            // Preload attempts (optional but good practice)
+             const sounds = {
+                 harvest: 'ambient-nature.mp3', // Replace with your actual file names/paths
+                 processing: 'factory-sounds.mp3',
+                 packaging: 'packaging-sounds.mp3',
+                 transport: 'road-sounds.mp3',
+                 delivery: 'kettle-pour.mp3'
+             };
+
+             Object.keys(sounds).forEach(key => {
+                 try {
+                     audioElements[key] = new Audio(sounds[key]);
+                     audioElements[key].preload = 'auto'; // Suggest preloading
+                      audioElements[key].loop = true;
+                      audioElements[key].volume = 0; // Start silent
+                     // Handle potential loading errors
+                      audioElements[key].addEventListener('error', (e) => {
+                         console.error(`Error loading audio for ${key}: ${sounds[key]}`, e);
+                     });
+                 } catch (e) {
+                     console.error(`Could not create audio element for ${key}`, e);
+                 }
+             });
+
+
+            // Toggle audio
+            audioControl.addEventListener('click', () => {
+                audioEnabled = !audioEnabled;
+                const iconOn = audioControl.querySelector('.audio-on');
+                const iconOff = audioControl.querySelector('.audio-off');
+                const tooltip = audioControl.querySelector('.audio-tooltip');
+
+                if (audioEnabled) {
+                    gsap.to(audioControl, { backgroundColor: 'var(--accent-color)', scale: 1.1, duration: 0.3 });
+                    iconOn.style.display = 'block';
+                    iconOff.style.display = 'none';
+                    tooltip.textContent = "Disable ambient sounds";
+                    // Immediately try to play the audio for the current section if applicable
+                     ScrollTrigger.refresh(); // Refresh triggers to check current section
+                 } else {
+                    gsap.to(audioControl, { backgroundColor: 'rgba(255,255,255,0.1)', scale: 1, duration: 0.3 });
+                    iconOn.style.display = 'none';
+                    iconOff.style.display = 'block';
+                    tooltip.textContent = "Enable ambient sounds";
+                    // Fade out all audio
+                    Object.values(audioElements).forEach(audio => {
+                         if (audio && !audio.paused) { // Check if audio exists and is playing
+                            gsap.to(audio, { volume: 0, duration: 0.5, onComplete: () => audio.pause() });
+                         }
+                    });
+                    currentAudio = null;
+                }
+            });
+
+            function playAudio(sectionId) {
+                 if (!audioEnabled || !audioElements[sectionId]) return;
+                 if (currentAudio === audioElements[sectionId] && !currentAudio.paused) return; // Already playing
+
+                 // Fade out previous audio
+                 if (currentAudio && currentAudio !== audioElements[sectionId] && !currentAudio.paused) {
+                     gsap.to(currentAudio, { volume: 0, duration: 0.5, onComplete: () => currentAudio.pause() });
+                 }
+
+                 // Fade in new audio
+                 currentAudio = audioElements[sectionId];
+                 if (currentAudio.paused) { // Only play if paused
+                     currentAudio.currentTime = 0; // Restart
+                     currentAudio.play().catch(e => console.error("Audio play failed:", e)); // Play and catch errors
+                 }
+                  gsap.to(currentAudio, { volume: 0.4, duration: 1.0 }); // Fade in volume
+             }
+
+            function stopAudio(sectionId) {
+                if (!audioElements[sectionId] || audioElements[sectionId].paused) return;
+                // Only fade out if it's the currently active audio
+                 if (currentAudio === audioElements[sectionId]) {
+                     gsap.to(audioElements[sectionId], { volume: 0, duration: 0.5, onComplete: () => audioElements[sectionId].pause() });
+                     currentAudio = null; // No audio is actively playing
+                 }
+            }
+
+            // Set up section-specific audio triggers
+            gsap.utils.toArray('.section').forEach(section => {
+                const sectionId = section.id;
+                if (audioElements[sectionId]) {
+                    ScrollTrigger.create({
+                        trigger: section,
+                        start: 'top center', // Start when section is centered
+                        end: 'bottom center', // End when section leaves center
+                        // markers: true, // Debug audio triggers
+                        onEnter: () => playAudio(sectionId),
+                        onLeave: () => stopAudio(sectionId),
+                        onEnterBack: () => playAudio(sectionId),
+                        onLeaveBack: () => stopAudio(sectionId)
+                    });
+                }
+            });
+
+            document.body.appendChild(audioControl);
+        }
+        createAudioControls(); // Initialize audio
+
+        // --- Final performance optimizations ---
+        ScrollTrigger.config({ limitCallbacks: true, autoRefreshEvents: "visibilitychange,DOMContentLoaded,load" }); // Optimize refresh triggers
+        gsap.ticker.lagSmoothing(false); // Disable lag smoothing if causing issues, test performance
+        gsap.config({ force3D: "auto" }); // Let GSAP decide on 3D layer promotion
+
+        console.log("Enhanced Tea Journey Animation System Initialized");
+
+        // Refresh ScrollTrigger after everything is set up, especially after loader removal
+        ScrollTrigger.refresh();
+        console.log("ScrollTrigger refreshed.");
+
+
+    </script>
+</body>
+</html>
