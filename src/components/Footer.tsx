@@ -7,7 +7,7 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-gradient">SupplyChainGuard</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gradient">The Brew Route</h3>
             <p className="text-sm text-muted-foreground">
               A decentralized platform that tracks products from raw materials to consumers,
               ensuring ethical sourcing and reducing counterfeits.
@@ -44,7 +44,7 @@ export const Footer = () => {
               </a>
             </div>
             <p className="text-xs text-muted-foreground mt-4">
-              © 2025 SupplyChainGuard. All rights reserved.
+              © 2025 The Brew Route. All rights reserved.
             </p>
           </div>
         </div>

@@ -15,7 +15,7 @@ export const AnimatedHeader = () => {
         <div className={`${isVisible ? "animate-fade-in" : "opacity-0"}`}>
           <div className="flex items-center mb-2">
             <Shield className="mr-2 h-8 w-8 text-green-400 animate-glow" />
-            <h1 className="text-4xl font-bold text-gradient">SupplyChainGuard</h1>
+            <h1 className="text-4xl font-bold text-gradient">The Brew Route</h1>
           </div>
           
           <p className={`text-muted-foreground mt-2 max-w-xl ${isVisible ? "animate-fade-in delay-200" : "opacity-0"}`}>

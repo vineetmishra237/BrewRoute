@@ -28,7 +28,7 @@ export const Features = () => {
   return (
     <section className="py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gradient">Why Choose SupplyChainGuard</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gradient">Why Choose The Brew Route?</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
